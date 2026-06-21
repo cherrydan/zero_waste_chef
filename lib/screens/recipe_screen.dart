@@ -50,6 +50,13 @@ class _RecipeScreenState extends State<RecipeScreen> {
     // Инициализируем списки галочек (изначально все false - ничего не выполнено)
     _shoppingChecks = List.generate(_mockRecipe.shoppingList.length, (index) => false);
     _stepsChecks = List.generate(_mockRecipe.steps.length, (index) => false);
+    
+    // ВСТАВЛЯЕМ ТВОЙ КОД СЮДА:
+    var aiPrompt = 'Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. Добавь не больше 2 дешевых ингредиентов';
+    
+    // Печатаем наш промпт в консоль VS Code, чтобы проверить работу
+    print('Сгенерированный промпт для AI:');
+    print(aiPrompt);
   }
 
   @override
