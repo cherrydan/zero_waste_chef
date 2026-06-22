@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'fridge_screen.dart'; // Чтобы видеть модель Ingredient
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../config.dart';
+
 
 // Модель данных рецепта (из Шага 1)
 class Recipe {
@@ -51,13 +55,49 @@ class _RecipeScreenState extends State<RecipeScreen> {
     _shoppingChecks = List.generate(_mockRecipe.shoppingList.length, (index) => false);
     _stepsChecks = List.generate(_mockRecipe.steps.length, (index) => false);
     
-    // ВСТАВЛЯЕМ ТВОЙ КОД СЮДА:
-    var aiPrompt = 'Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. Добавь не больше 2 дешевых ингредиентов';
-    
-    // Печатаем наш промпт в консоль VS Code, чтобы проверить работу
-    print('Сгенерированный промпт для AI:');
-    print(aiPrompt);
+    _loadRecipeFromAI();
+   
   }
+
+
+  // ==========================================
+  // ВОТ ИДЕАЛЬНОЕ МЕСТО ДЛЯ ТВОЕЙ ФУНКЦИИ:
+  Future<void> _loadRecipeFromAI() async {
+    // Пишем логику отправки запроса сюда!
+    var headers = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer $myKey',
+  };
+  var aiPrompt = 'Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. Добавь не больше 2 дешевых ингредиентов';
+
+
+    var body = jsonEncode({
+    'model': 'gpt-4o-mini',
+    'messages': [
+      {
+        'role': 'user',
+        'content': aiPrompt,
+      }
+    ]
+  });
+
+
+   
+    
+
+    var url = Uri.parse('https://api.openai.com/v1/chat/completions');
+    var response = await http.post(url, headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      print('Ответ от AI: ${response.body}');
+    
+    } else { print('Ошибка при получении рецепта: ${response.statusCode}');
+    
+    }
+
+  }
+  // ==========================================
+
 
   @override
   Widget build(BuildContext context) {
