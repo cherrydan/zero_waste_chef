@@ -31,9 +31,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
     if (_controller.text.trim().isEmpty) return;
 
     setState(() {
-      // TODO #1: Добавь новый ингредиент в список _ingredients.
-      // Имя ингредиента должно браться из _controller.text.
-      // После добавления обязательно очисти поле ввода с помощью _controller.clear().
 
       _ingredients.add(Ingredient(name: _controller.text.trim())); 
       _controller.clear();
@@ -43,7 +40,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
   // Функция удаления продукта
   void _removeIngredient(int index) {
     setState(() {
-      // TODO #2: Напиши код, который удаляет элемент из списка _ingredients по индексу index.
+     
       _ingredients.removeAt(index);
       
     });
@@ -140,9 +137,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO #3: Напиши переход на экран RecipeScreen.
-                  // Передай туда наш список ингредиентов _ingredients, чтобы мы могли отправить его в AI.
-                  // Подсказка: используй Navigator.push(...)
+                 
                   Navigator.push(
                     context,
                     MaterialPageRoute(

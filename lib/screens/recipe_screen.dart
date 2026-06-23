@@ -29,7 +29,9 @@ class RecipeScreen extends StatefulWidget {
 
 class _RecipeScreenState extends State<RecipeScreen> {
   // Имитируем, что AI уже вернул нам этот рецепт (Mock Data)
-  late final Recipe _mockRecipe;
+     Recipe? _recipe; // Изначально равен null (пусто), пока ИИ думает
+    String? _errorMessage;  
+
 
   // Списки для отслеживания галочек пользователя
   List<bool> _shoppingChecks = [];
@@ -38,22 +40,6 @@ class _RecipeScreenState extends State<RecipeScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Создаем тестовый рецепт, который "как будто" пришел от AI
-    _mockRecipe = Recipe(
-      title: "Средиземноморская теплая сковорода 🍳",
-      shoppingList: ["Оливковое масло", "Чеснок", "Базилик"],
-      steps: [
-        "Нарежь куриное филе кубиками и обжарь на сковороде с чесноком.",
-        "Добавь помидоры и туши 5 минут на среднем огне.",
-        "Закинь шпинат и раскроши сыр фета сверху.",
-        "Подавай теплым с отваренным рисом!"
-      ],
-    );
-
-    // Инициализируем списки галочек (изначально все false - ничего не выполнено)
-    _shoppingChecks = List.generate(_mockRecipe.shoppingList.length, (index) => false);
-    _stepsChecks = List.generate(_mockRecipe.steps.length, (index) => false);
     
     _loadRecipeFromAI();
    
@@ -68,11 +54,21 @@ class _RecipeScreenState extends State<RecipeScreen> {
   'Content-Type': 'application/json',
   'Authorization': 'Bearer $myKey',
   };
-  var aiPrompt = 'Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. Добавь не больше 2 дешевых ингредиентов';
+      var aiPrompt = '''
+Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. 
+Добавь не больше 2 дешевых ингредиентов.
+
+Ответ верни СТРОГО в формате JSON с ключами: 
+- 'recipe_name' (строка)
+- 'shopping_list' (массив строк)
+- 'steps' (массив строк).
+''';
+
 
 
     var body = jsonEncode({
     'model': 'gpt-4o-mini',
+    'response_format': {'type': 'json_object'},
     'messages': [
       {
         'role': 'user',
@@ -89,10 +85,31 @@ class _RecipeScreenState extends State<RecipeScreen> {
     var response = await http.post(url, headers: headers, body: body);
 
     if (response.statusCode == 200) {
-      print('Ответ от AI: ${response.body}');
+      var decodedData = jsonDecode(response.body);
+      String replyText = decodedData['choices'][0]['message']['content'];
+      var recipeJson = jsonDecode(replyText);
+            // Создаем объект рецепта из JSON
+      Recipe realRecipe = Recipe(
+        title: recipeJson['recipe_name'],
+        shoppingList: List<String>.from(recipeJson['shopping_list']),
+        steps: List<String>.from(recipeJson['steps']),
+      );
+
+      // Обновляем состояние экрана!
+      setState(() {
+        _recipe = realRecipe;
+        // Генерируем новые пустые списки галочек (false) под размер нового рецепта
+        _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
+        _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
+      });
+
     
-    } else { print('Ошибка при получении рецепта: ${response.statusCode}');
-    
+    } else { 
+      
+      setState(() {
+        _errorMessage = 'Ой, что-то пошло не так. Не удалось получить рецепт от ИИ. 😢';
+      });
+
     }
 
   }
@@ -106,50 +123,59 @@ class _RecipeScreenState extends State<RecipeScreen> {
         title: const Text('Ваш рецепт 🧑‍🍳'),
         backgroundColor: Colors.green.shade100,
       ),
-      body: SingleChildScrollView( // Разрешаем скролл, если рецепт длинный
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Красивый заголовок рецепта
-            Text(
-              _mockRecipe.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+body: _errorMessage != null
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16, color: Colors.red),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context), // Кнопка возврата назад в холодильник
+                      child: const Text('Вернуться назад'),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Используем из холодильника: ${widget.selectedIngredients.map((e) => e.name).join(', ')}",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-            const Divider(height: 32),
-
-            // 2. Блок "Что нужно докупить"
-            const Text(
-              "Нужно докупить в магазине: 🛒",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            
-            // TODO #1: Реализуй список покупок.
-            // Нам нужно вывести элементы из _mockRecipe.shoppingList.
-            // Для каждого элемента нужно показать CheckboxListTile, чтобы юзер мог кликнуть и отметить галочкой.
-            // Используй ListView.builder или обычный Column с обходом элементов.
-            // Шаблон для одного элемента:
-            /*
-            CheckboxListTile(
-              title: Text(название_продукта),
-              value: _shoppingChecks[index],
-              onChanged: (bool? value) {
-                setState(() {
-                  _shoppingChecks[index] = value!;
-                });
-              },
             )
-            */
+
+      // ПРОВЕРЯЕМ: Если рецепт еще не загрузился, показываем крутилку
+      : _recipe == null
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.green),
+                  SizedBox(height: 16),
+                  Text('ИИ придумывает рецепт... 🧑‍🍳'),
+                ],
+              ),
+            )
+          // ЕСЛИ РЕЦЕПТ ЗАГРУЗИЛСЯ — показываем наш обычный экран
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. Красивый заголовок рецепта
+                  Text(
+                    _recipe!.title, // Обрати внимание: теперь везде используем _recipe! вместо _mockRecipe
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+            
+           
             _buildShoppingList(), // Вставляем наш интерактивный список покупок
 
             const Divider(height: 32),
@@ -161,10 +187,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
             ),
             const SizedBox(height: 8),
 
-            // TODO #2: Реализуй список шагов готовки.
-            // Выведи шаги из _mockRecipe.steps.
-            // Сделай так, чтобы при клике на шаг текст зачеркивался (через TextDecoration.lineThrough),
-            // если шаг выполнен (_stepsChecks[index] == true).
+            
             _buildStepsList(), // Вставляем наши интерактивные шаги готовки
           ],
         ),
@@ -172,33 +195,17 @@ class _RecipeScreenState extends State<RecipeScreen> {
     );
   }
 
-  // Временные заглушки (удали их или перепиши внутри TODO)
+  
   Widget _buildShoppingList() {
 
-    // TODO #1: Реализуй список покупок.
-            // Нам нужно вывести элементы из _mockRecipe.shoppingList.
-            // Для каждого элемента нужно показать CheckboxListTile, чтобы юзер мог кликнуть и отметить галочкой.
-            // Используй ListView.builder или обычный Column с обходом элементов.
-            // Шаблон для одного элемента:
-            /*
-            CheckboxListTile(
-              title: Text(название_продукта),
-              value: _shoppingChecks[index],
-              onChanged: (bool? value) {
-                setState(() {
-                  _shoppingChecks[index] = value!;
-                });
-              },
-            )
-            */
             return Column(
       children: [
-        for (int i = 0; i < _mockRecipe.shoppingList.length; i++)
+        for (int i = 0; i < _recipe!.shoppingList.length; i++)
           CheckboxListTile(
             // Сдвигаем галочку влево (по умолчанию она справа)
             controlAffinity: ListTileControlAffinity.leading,
             title: Text(
-              _mockRecipe.shoppingList[i],
+               _recipe!.shoppingList[i],
               style: TextStyle(
                 // Если галочка стоит — зачеркиваем текст, иначе оставляем обычным
                 decoration: _shoppingChecks[i] ? TextDecoration.lineThrough : null,
@@ -221,11 +228,11 @@ class _RecipeScreenState extends State<RecipeScreen> {
   Widget _buildStepsList() {
     return Column(
       children: [
-        for (int i = 0; i < _mockRecipe.steps.length; i++)
+        for (int i = 0; i <  _recipe!.steps.length; i++)
           CheckboxListTile(
             controlAffinity: ListTileControlAffinity.leading,
             title: Text(
-              _mockRecipe.steps[i],
+               _recipe!.steps[i],
               style: TextStyle(
                 decoration: _stepsChecks[i] ? TextDecoration.lineThrough : null,
                 color: _stepsChecks[i] ? Colors.grey : Colors.black87,
