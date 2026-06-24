@@ -163,28 +163,50 @@ final List<PopularProduct> _popularProducts = [
                       itemCount: _ingredients.length,
                       itemBuilder: (context, index) {
                         final item = _ingredients[index];
-                        return Card(
-                          color: item.isUrgent ? Colors.red.shade50 : null,
-                          child: ListTile(
-                            leading: IconButton(
-                              icon: Icon(
-                                item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                                color: item.isUrgent ? Colors.red : Colors.grey,
-                              ),
-                              onPressed: () => _toggleUrgent(index),
-                            ),
-                            title: Text(
-                              item.name,
-                              style: TextStyle(
-                                fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.grey),
-                              onPressed: () => _removeIngredient(index),
-                            ),
-                          ),
-                        );
+                        return Container(
+  // 1. Настраиваем отступы СНАРУЖИ, чтобы карточки не слипались
+  margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+  
+  // 2. Настраиваем нашу космическую декорацию
+  decoration: BoxDecoration(
+    // Твоя умная строчка выбора цвета:
+    color: item.isUrgent ? Colors.red.shade50 : Colors.white,
+    // Скругляем углы карточки на 16 пикселей
+    borderRadius: BorderRadius.circular(16.0),
+    // Твоя глубокая и мягкая тень:
+    boxShadow: [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.04), // всего 4% видимости тени для ультра-мягкости
+        blurRadius: 12,
+        offset: const Offset(0, 4),
+      ),
+    ],
+  ),
+  
+  // 3. Внутрь контейнера кладем наш ListTile с контентом
+  child: ListTile(
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Отступы внутри ListTile
+    leading: IconButton(
+      icon: Icon(
+        item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+        color: item.isUrgent ? Colors.red : Colors.grey,
+      ),
+      onPressed: () => _toggleUrgent(index),
+    ),
+    title: Text(
+      item.name,
+      style: TextStyle(
+        fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
+        color: item.isUrgent ? Colors.red.shade900 : Colors.black87, // Делаем текст срочных продуктов темно-красным
+      ),
+    ),
+    trailing: IconButton(
+      icon: const Icon(Icons.delete_outline, color: Colors.grey),
+      onPressed: () => _removeIngredient(index),
+    ),
+  ),
+);
+
                       },
                     ),
             ),
