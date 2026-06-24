@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'recipe_screen.dart'; // Импортируем будущий экран рецептов
+import 'dart:convert'; 
 
 // Сначала создадим модель нашего ингредиента
 class Ingredient {
@@ -24,6 +26,8 @@ class FridgeScreen extends StatefulWidget {
 
   @override
   State<FridgeScreen> createState() => _FridgeScreenState();
+
+  
 }
 
 class _FridgeScreenState extends State<FridgeScreen> {
@@ -44,6 +48,44 @@ final List<PopularProduct> _popularProducts = [
   PopularProduct(name: 'Молоко', emoji: '🥛'),
 ];
 
+  // Функция сохранения холодильника в память телефона (в формате JSON)
+  Future<void> _saveFridgeData() async {
+    final prefs = await SharedPreferences.getInstance();
+    // Превращаем список объектов Ingredient в список простых карт (Map)
+    final listJson = _ingredients.map((it) => {
+      'name': it.name, 
+      'isUrgent': it.isUrgent
+    }).toList();
+    
+    // Кодируем в одну большую JSON-строку и сохраняем
+    await prefs.setString('fridge_list', jsonEncode(listJson));
+  }
+
+  // Функция загрузки холодильника из памяти телефона при старте
+  Future<void> _loadFridgeData() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedString = prefs.getString('fridge_list');
+    
+    // Если в памяти еще ничего нет (первый запуск) — ничего не делаем
+    if (savedString == null || savedString.isEmpty) return;
+    
+    try {
+      final List<dynamic> decodedList = jsonDecode(savedString);
+      setState(() {
+        _ingredients.clear(); // Очищаем дефолтные продукты
+        // Заполняем список тем, что прочитали из памяти
+        _ingredients.addAll(decodedList.map((e) => Ingredient(
+          name: e['name'] as String,
+          isUrgent: e['isUrgent'] as bool,
+        )));
+      });
+    } catch (e) {
+      // Если данные вдруг повредились — очищаем ключ
+      await prefs.remove('fridge_list');
+    }
+  }
+
+
   // Контроллер для чтения текста из поля ввода
   final TextEditingController _controller = TextEditingController();
 
@@ -56,6 +98,7 @@ final List<PopularProduct> _popularProducts = [
       _ingredients.add(Ingredient(name: _controller.text.trim())); 
       _controller.clear();
     });
+    _saveFridgeData();
   }
 
   // Добавляем новый ингридиент через меню популярных продуктов
@@ -90,6 +133,13 @@ final List<PopularProduct> _popularProducts = [
     _controller.dispose(); // Всегда очищаем контроллеры для предотвращения утечек памяти
     super.dispose();
   }
+
+    @override
+  void initState() {
+    super.initState();
+    _loadFridgeData(); // Загружаем продукты из памяти смартфона
+  }
+
 
  @override
   Widget build(BuildContext context) {
