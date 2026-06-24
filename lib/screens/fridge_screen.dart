@@ -9,6 +9,16 @@ class Ingredient {
   Ingredient({required this.name, this.isUrgent = false});
 }
 
+// Популярные продукты в виде иконок для быстрого добавления
+class PopularProduct {
+  final String name;
+  final String emoji;
+
+  PopularProduct({required this.name, required this.emoji});
+}
+
+
+
 class FridgeScreen extends StatefulWidget {
   const FridgeScreen({super.key});
 
@@ -23,6 +33,17 @@ class _FridgeScreenState extends State<FridgeScreen> {
     Ingredient(name: 'Куриное филе'),
   ];
 
+final List<PopularProduct> _popularProducts = [
+  PopularProduct(name: 'Помидоры', emoji: '🍅'),
+  PopularProduct(name: 'Куриное филе', emoji: '🍗'),
+  PopularProduct(name: 'Сыр Фета', emoji: '🧀'),
+  PopularProduct(name: 'Яйца', emoji: '🥚'),
+  
+  PopularProduct(name: 'Мясо', emoji: '🥩'),
+  PopularProduct(name: 'Морепродукты', emoji: '🍤'),
+  PopularProduct(name: 'Молоко', emoji: '🥛'),
+];
+
   // Контроллер для чтения текста из поля ввода
   final TextEditingController _controller = TextEditingController();
 
@@ -36,6 +57,17 @@ class _FridgeScreenState extends State<FridgeScreen> {
       _controller.clear();
     });
   }
+
+  // Добавляем новый ингридиент через меню популярных продуктов
+  void _addPopularProduct(PopularProduct product) {
+  setState(() {
+    // Добавь новый ингредиент в наш список _ingredients.
+    // Имя ингредиента должно браться из product.name.
+    _ingredients.add(Ingredient(name: product.name));
+
+  });
+}
+
 
   // Функция удаления продукта
   void _removeIngredient(int index) {
@@ -59,7 +91,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
     super.dispose();
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -94,11 +126,39 @@ class _FridgeScreenState extends State<FridgeScreen> {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Маленький красивый заголовок для блока быстрых кнопок
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Быстрый выбор: ⚡️',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Наш исправленный Wrap без лишних скобок
+            Wrap(
+              spacing: 8.0, 
+              runSpacing: 8.0, 
+              children: [
+                for (int i = 0; i < _popularProducts.length; i++) 
+                  ActionChip(
+                    avatar: Text(_popularProducts[i].emoji),
+                    label: Text(_popularProducts[i].name),
+                    onPressed: () => _addPopularProduct(_popularProducts[i]),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16), 
             
             // Список добавленных продуктов
             Expanded(
               child: _ingredients.isEmpty
-                  ? const Center(child: Text('В холодильнике пока пусто 🏜️'))
+                  ? const Center(child: Text('В холодильнике пока пусто 🏜'))
                   : ListView.builder(
                       itemCount: _ingredients.length,
                       itemBuilder: (context, index) {
@@ -106,7 +166,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
                         return Card(
                           color: item.isUrgent ? Colors.red.shade50 : null,
                           child: ListTile(
-                            // Иконка срочности (меняет цвет при тапе)
                             leading: IconButton(
                               icon: Icon(
                                 item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
@@ -120,7 +179,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
                                 fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
-                            // Кнопка удаления
                             trailing: IconButton(
                               icon: const Icon(Icons.delete_outline, color: Colors.grey),
                               onPressed: () => _removeIngredient(index),
@@ -137,7 +195,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                 
                   Navigator.push(
                     context,
                     MaterialPageRoute(
