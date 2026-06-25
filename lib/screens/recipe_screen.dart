@@ -23,7 +23,9 @@ class RecipeScreen extends StatefulWidget {
 
   final int portions; // Новое поле для количества порций
 
-  const RecipeScreen({super.key, required this.selectedIngredients, required this.portions});
+  final String diet; // новое поле для выбранной диеты
+
+  const RecipeScreen({super.key, required this.selectedIngredients, required this.portions, required this.diet});
 
   @override
   State<RecipeScreen> createState() => _RecipeScreenState();
@@ -58,7 +60,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   };
       var aiPrompt = '''
 Приготовь блюдо строго на ${widget.portions} порции(й) из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. 
-Добавь не больше 2 дешевых ингредиентов.
+Добавь не больше 2 дешевых ингредиентов. Рецепт должен строго соответствовать диете: ${widget.diet}
 
 Ответ верни СТРОГО в формате JSON с ключами: 
 - 'recipe_name' (строка)

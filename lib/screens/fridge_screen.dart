@@ -39,6 +39,10 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   int _portions = 2; // Количество порций по умолчанию
 
+  final List<String> _diets = ['Обычная', 'Средиземноморская', 'Вегетарианская'];
+  String _selectedDiet = 'Обычная'; // Переменная для хранения выбранной диеты
+
+
 final List<PopularProduct> _popularProducts = [
   PopularProduct(name: 'Помидоры', emoji: '🍅'),
   PopularProduct(name: 'Куриное филе', emoji: '🍗'),
@@ -100,6 +104,13 @@ final List<PopularProduct> _popularProducts = [
       if (_portions > 1) {
         _portions--;
       }
+    });
+  }
+
+  // выбор диеты
+    void _selectDiet(String diet) {
+    setState(() {
+      _selectedDiet = diet; // Сохраняем выбранную диету
     });
   }
 
@@ -278,6 +289,63 @@ final List<PopularProduct> _popularProducts = [
                       },
                     ),
             ),
+
+// Красивый блок настройки диеты
+// Красивый блок настройки диеты (с горизонтальным скроллом)
+Container(
+  padding: const EdgeInsets.all(12.0),
+  decoration: BoxDecoration(
+    color: Colors.green.shade50,
+    borderRadius: BorderRadius.circular(12.0),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Row(
+        children: [
+          Icon(Icons.spa, color: Colors.green),
+          SizedBox(width: 8),
+          Text(
+            'Тип диеты:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      
+      // Наш горизонтальный скроллер для кнопок-чипсов
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal, // Скроллим только по горизонтали
+        physics: const BouncingScrollPhysics(), // Эффект пружины при прокрутке
+        child: Row(
+          children: [
+            for (String diet in _diets)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0), // Отступы между кнопками
+                child: ChoiceChip(
+                  label: Text(diet),
+                  selected: _selectedDiet == diet,
+                  selectedColor: Colors.green.shade200,
+                  backgroundColor: Colors.white,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      _selectDiet(diet);
+                    }
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    ],
+  ),
+),
+
+const SizedBox(height: 12), // Отступ перед блоком порций
+
+const SizedBox(height: 12), // Отступ перед блоком порций
+
+            
             // Красивый блок настройки порций
 Container(
   padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -331,7 +399,7 @@ const SizedBox(height: 16), // Отступ перед зеленой кнопк
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RecipeScreen(selectedIngredients: _ingredients, portions: _portions),
+                      builder: (context) => RecipeScreen(selectedIngredients: _ingredients, portions: _portions, diet: _selectedDiet),
                     ),
                   );
                 },
