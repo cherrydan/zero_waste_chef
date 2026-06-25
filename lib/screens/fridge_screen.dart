@@ -37,6 +37,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
     Ingredient(name: 'Куриное филе'),
   ];
 
+  int _portions = 2; // Количество порций по умолчанию
+
 final List<PopularProduct> _popularProducts = [
   PopularProduct(name: 'Помидоры', emoji: '🍅'),
   PopularProduct(name: 'Куриное филе', emoji: '🍗'),
@@ -83,6 +85,22 @@ final List<PopularProduct> _popularProducts = [
       // Если данные вдруг повредились — очищаем ключ
       await prefs.remove('fridge_list');
     }
+  }
+
+
+  // кастомизация промпта
+    void _increasePortions() {
+    setState(() {
+      _portions++;
+    });
+  }
+
+  void _decreasePortions() {
+    setState(() {
+      if (_portions > 1) {
+        _portions--;
+      }
+    });
   }
 
 
@@ -260,7 +278,50 @@ final List<PopularProduct> _popularProducts = [
                       },
                     ),
             ),
-            
+            // Красивый блок настройки порций
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+  decoration: BoxDecoration(
+    color: Colors.green.shade50, // Нежный зеленый фон
+    borderRadius: BorderRadius.circular(12.0),
+  ),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Разносим текст и кнопки по краям
+    children: [
+      const Row(
+        children: [
+          Icon(Icons.restaurant, color: Colors.green), // Иконка вилки и ножа
+          SizedBox(width: 8),
+          Text(
+            'Порций в рецепте:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      Row(
+        children: [
+          // Кнопка МИНУС
+          IconButton(
+            icon: const Icon(Icons.remove_circle_outline, color: Colors.green),
+            onPressed: _decreasePortions, // Наша функция!
+          ),
+          // Текст с текущим количеством порций
+          Text(
+            '$_portions', // Используем интерполяцию для вывода числа
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          // Кнопка ПЛЮС
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+            onPressed: _increasePortions, // Наша функция!
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+const SizedBox(height: 16), // Отступ перед зеленой кнопкой
+
             // Кнопка "Сгенерировать план"
             SizedBox(
               width: double.infinity,
@@ -270,7 +331,7 @@ final List<PopularProduct> _popularProducts = [
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => RecipeScreen(selectedIngredients: _ingredients),
+                      builder: (context) => RecipeScreen(selectedIngredients: _ingredients, portions: _portions),
                     ),
                   );
                 },

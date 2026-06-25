@@ -21,7 +21,9 @@ class Recipe {
 class RecipeScreen extends StatefulWidget {
   final List<Ingredient> selectedIngredients;
 
-  const RecipeScreen({super.key, required this.selectedIngredients});
+  final int portions; // Новое поле для количества порций
+
+  const RecipeScreen({super.key, required this.selectedIngredients, required this.portions});
 
   @override
   State<RecipeScreen> createState() => _RecipeScreenState();
@@ -55,7 +57,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
   'Authorization': 'Bearer $myKey',
   };
       var aiPrompt = '''
-Приготовь блюдо из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. 
+Приготовь блюдо строго на ${widget.portions} порции(й) из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. 
 Добавь не больше 2 дешевых ингредиентов.
 
 Ответ верни СТРОГО в формате JSON с ключами: 
