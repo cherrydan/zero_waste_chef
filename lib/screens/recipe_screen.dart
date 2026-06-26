@@ -35,7 +35,10 @@ class RecipeScreen extends StatefulWidget {
 
   final String diet; // новое поле для выбранной диеты
 
-  const RecipeScreen({super.key, required this.selectedIngredients, required this.portions, required this.diet});
+  final Recipe? savedRecipe;
+
+  const RecipeScreen({super.key, required this.selectedIngredients, required this.portions, required this.diet,
+   this.savedRecipe});
 
   @override
   State<RecipeScreen> createState() => _RecipeScreenState();
@@ -111,7 +114,22 @@ class _RecipeScreenState extends State<RecipeScreen> {
   void initState() {
     super.initState();
     
-    _loadRecipeFromAI();
+    if (widget.savedRecipe != null) {
+      // 1. Если рецепт ПЕРЕДАН из избранного:
+      // Присваиваем его в нашу переменную _recipe
+      _recipe = widget.savedRecipe;
+      
+      // Инициализируем галочки (они будут пустыми при открытии)
+      _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
+      _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
+      
+      // И не забываем проверить статус сердечка (оно должно быть красным)
+      _loadFavorites();
+    } else {
+      // 2. Если рецепта НЕТ (пришли из холодильника):
+      // запускаем генерацию через ИИ
+      _loadRecipeFromAI();
+    }
    
   }
 

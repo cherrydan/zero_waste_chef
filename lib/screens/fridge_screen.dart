@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; 
 import 'recipe_screen.dart';
+import 'favorites_screen.dart';
+    
    
 
 
@@ -357,6 +359,7 @@ final List<PopularProduct> _popularProducts = [
                       selectedIngredients: _ingredients,
                       portions: _portions,
                       diet: _selectedDiet,
+                      savedRecipe: null
                     ),
                   ),
                 );
@@ -393,7 +396,7 @@ final List<PopularProduct> _popularProducts = [
         body: TabBarView(
           children: [
             _buildFridgeBody(), // Твоя верстка теперь живет здесь
-            const Center(child: Text('Здесь будут любимые рецепты')), // Заглушка для избранного
+            const FavoritesScreen()
           ],
         ),
       ),
