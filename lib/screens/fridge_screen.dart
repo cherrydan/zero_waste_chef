@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'recipe_screen.dart'; // Импортируем будущий экран рецептов
 import 'dart:convert'; 
+import 'recipe_screen.dart';
+   
+
 
 // Сначала создадим модель нашего ингредиента
 class Ingredient {
@@ -169,250 +171,229 @@ final List<PopularProduct> _popularProducts = [
     _loadFridgeData(); // Загружаем продукты из памяти смартфона
   }
 
-
- @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Мой Холодильник 🍏'),
-        backgroundColor: Colors.green.shade100,
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Поле ввода и кнопка "+"
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'Например: Шпинат, Сыр...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+  Widget _buildFridgeBody() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          // 1. Поле ввода и кнопка "+"
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: 'Например: Шпинат, Сыр...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  onPressed: _addIngredient,
-                  icon: const Icon(Icons.add),
-                  style: IconButton.styleFrom(backgroundColor: Colors.green),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            // Маленький красивый заголовок для блока быстрых кнопок
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Быстрый выбор: ⚡️',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(width: 8),
+              IconButton.filled(
+                onPressed: _addIngredient,
+                icon: const Icon(Icons.add),
+                style: IconButton.styleFrom(backgroundColor: Colors.green),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
 
-            // Наш исправленный Wrap без лишних скобок
-            Wrap(
-              spacing: 8.0, 
-              runSpacing: 8.0, 
+          // 2. Блок "Быстрый выбор" (Wrap)
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Быстрый выбор: ⚡️',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              for (int i = 0; i < _popularProducts.length; i++)
+                ActionChip(
+                  avatar: Text(_popularProducts[i].emoji),
+                  label: Text(_popularProducts[i].name),
+                  onPressed: () => _addPopularProduct(_popularProducts[i]),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // 3. Блок "Тип диеты" (Horizontal Scroll)
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Тип диеты: 🥗',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
               children: [
-                for (int i = 0; i < _popularProducts.length; i++) 
-                  ActionChip(
-                    avatar: Text(_popularProducts[i].emoji),
-                    label: Text(_popularProducts[i].name),
-                    onPressed: () => _addPopularProduct(_popularProducts[i]),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16), 
-            
-            // Список добавленных продуктов
-            Expanded(
-              child: _ingredients.isEmpty
-                  ? const Center(child: Text('В холодильнике пока пусто 🏜'))
-                  : ListView.builder(
-                      itemCount: _ingredients.length,
-                      itemBuilder: (context, index) {
-                        final item = _ingredients[index];
-                        return Container(
-  // 1. Настраиваем отступы СНАРУЖИ, чтобы карточки не слипались
-  margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
-  
-  // 2. Настраиваем нашу космическую декорацию
-  decoration: BoxDecoration(
-    // Твоя умная строчка выбора цвета:
-    color: item.isUrgent ? Colors.red.shade50 : Colors.white,
-    // Скругляем углы карточки на 16 пикселей
-    borderRadius: BorderRadius.circular(16.0),
-    // Твоя глубокая и мягкая тень:
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.04), // всего 4% видимости тени для ультра-мягкости
-        blurRadius: 12,
-        offset: const Offset(0, 4),
-      ),
-    ],
-  ),
-  
-  // 3. Внутрь контейнера кладем наш ListTile с контентом
-  child: ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0), // Отступы внутри ListTile
-    leading: IconButton(
-      icon: Icon(
-        item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-        color: item.isUrgent ? Colors.red : Colors.grey,
-      ),
-      onPressed: () => _toggleUrgent(index),
-    ),
-    title: Text(
-      item.name,
-      style: TextStyle(
-        fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
-        color: item.isUrgent ? Colors.red.shade900 : Colors.black87, // Делаем текст срочных продуктов темно-красным
-      ),
-    ),
-    trailing: IconButton(
-      icon: const Icon(Icons.delete_outline, color: Colors.grey),
-      onPressed: () => _removeIngredient(index),
-    ),
-  ),
-);
-
+                for (String diet in _diets)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: ChoiceChip(
+                      label: Text(diet),
+                      selected: _selectedDiet == diet,
+                      selectedColor: Colors.green.shade200,
+                      backgroundColor: Colors.white,
+                      onSelected: (bool selected) {
+                        if (selected) {
+                          _selectDiet(diet);
+                        }
                       },
                     ),
-            ),
-
-// Красивый блок настройки диеты
-// Красивый блок настройки диеты (с горизонтальным скроллом)
-Container(
-  padding: const EdgeInsets.all(12.0),
-  decoration: BoxDecoration(
-    color: Colors.green.shade50,
-    borderRadius: BorderRadius.circular(12.0),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const Row(
-        children: [
-          Icon(Icons.spa, color: Colors.green),
-          SizedBox(width: 8),
-          Text(
-            'Тип диеты:',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      
-      // Наш горизонтальный скроллер для кнопок-чипсов
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal, // Скроллим только по горизонтали
-        physics: const BouncingScrollPhysics(), // Эффект пружины при прокрутке
-        child: Row(
-          children: [
-            for (String diet in _diets)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0), // Отступы между кнопками
-                child: ChoiceChip(
-                  label: Text(diet),
-                  selected: _selectedDiet == diet,
-                  selectedColor: Colors.green.shade200,
-                  backgroundColor: Colors.white,
-                  onSelected: (bool selected) {
-                    if (selected) {
-                      _selectDiet(diet);
-                    }
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
-
-const SizedBox(height: 12), // Отступ перед блоком порций
-
-const SizedBox(height: 12), // Отступ перед блоком порций
-
-            
-            // Красивый блок настройки порций
-Container(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-  decoration: BoxDecoration(
-    color: Colors.green.shade50, // Нежный зеленый фон
-    borderRadius: BorderRadius.circular(12.0),
-  ),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween, // Разносим текст и кнопки по краям
-    children: [
-      const Row(
-        children: [
-          Icon(Icons.restaurant, color: Colors.green), // Иконка вилки и ножа
-          SizedBox(width: 8),
-          Text(
-            'Порций в рецепте:',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-      Row(
-        children: [
-          // Кнопка МИНУС
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: Colors.green),
-            onPressed: _decreasePortions, // Наша функция!
-          ),
-          // Текст с текущим количеством порций
-          Text(
-            '$_portions', // Используем интерполяцию для вывода числа
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          // Кнопка ПЛЮС
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: Colors.green),
-            onPressed: _increasePortions, // Наша функция!
-          ),
-        ],
-      ),
-    ],
-  ),
-),
-const SizedBox(height: 16), // Отступ перед зеленой кнопкой
-
-            // Кнопка "Сгенерировать план"
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipeScreen(selectedIngredients: _ingredients, portions: _portions, diet: _selectedDiet),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                ),
-                child: const Text('Сгенерировать меню (AI)', style: TextStyle(fontSize: 16)),
-              ),
+              ],
             ),
+          ),
+          const SizedBox(height: 16),
+
+          // 4. Список добавленных продуктов
+          Expanded(
+            child: _ingredients.isEmpty
+                ? const Center(child: Text('В холодильнике пока пусто 🏜'))
+                : ListView.builder(
+                    itemCount: _ingredients.length,
+                    itemBuilder: (context, index) {
+                      final item = _ingredients[index];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          color: item.isUrgent ? Colors.red.shade50 : Colors.white,
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          leading: IconButton(
+                            icon: Icon(
+                              item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                              color: item.isUrgent ? Colors.red : Colors.grey,
+                            ),
+                            onPressed: () => _toggleUrgent(index),
+                          ),
+                          title: Text(
+                            item.name,
+                            style: TextStyle(
+                              fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
+                              color: item.isUrgent ? Colors.red.shade900 : Colors.black87,
+                            ),
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                            onPressed: () => _removeIngredient(index),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+                  // Блок настройки порций
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.restaurant, color: Colors.green),
+                    SizedBox(width: 8),
+                    Text(
+                      'Порций:',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline, color: Colors.green),
+                      onPressed: _decreasePortions, // Теперь функция используется!
+                    ),
+                    Text(
+                      '$_portions',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline, color: Colors.green),
+                      onPressed: _increasePortions, // Теперь функция используется!
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // 5. Кнопка "Сгенерировать"
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RecipeScreen(
+                      selectedIngredients: _ingredients,
+                      portions: _portions,
+                      diet: _selectedDiet,
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Сгенерировать меню (AI)', style: TextStyle(fontSize: 16)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Zero Waste Chef 🍏'),
+          backgroundColor: Colors.green.shade100,
+          bottom: const TabBar(
+            tabs: [
+              Tab(icon: Icon(Icons.kitchen), text: 'Холодильник'),
+              Tab(icon: Icon(Icons.favorite), text: 'Избранное'),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildFridgeBody(), // Твоя верстка теперь живет здесь
+            const Center(child: Text('Здесь будут любимые рецепты')), // Заглушка для избранного
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'fridge_screen.dart'; // Чтобы видеть модель Ingredient
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 // Модель данных рецепта (из Шага 1)
@@ -16,6 +17,15 @@ class Recipe {
     required this.steps,
     required this.shoppingList,
   });
+
+  Map<String, dynamic> toJson() {
+  return {
+    'recipe_name': title,
+    'shopping_list': shoppingList,
+    'steps': steps,
+  };
+}
+
 }
 
 class RecipeScreen extends StatefulWidget {
@@ -35,11 +45,67 @@ class _RecipeScreenState extends State<RecipeScreen> {
   // Имитируем, что AI уже вернул нам этот рецепт (Mock Data)
      Recipe? _recipe; // Изначально равен null (пусто), пока ИИ думает
     String? _errorMessage;  
+    bool _isFavorite = false; // Состояние сердечка "Избранное". По умолчанию рецепт не в избранном
+
+    Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? favoritesString = prefs.getString('favorite_recipes');
+
+    if (favoritesString != null && favoritesString.isNotEmpty) {
+      final List<dynamic> decodedList = jsonDecode(favoritesString);
+      setState(() {
+        _favoriteRecipes = decodedList.map((e) => Recipe(
+          title: e['recipe_name'] as String,
+          shoppingList: List<String>.from(e['shopping_list']),
+          steps: List<String>.from(e['steps']),
+        )).toList();
+        
+        // Проверь, содержится ли текущий рецепт (_recipe!) в списке _favoriteRecipes.
+        // Если да, установи _isFavorite = true.
+        // Подсказка: для сравнения рецептов можно использовать их title (название).
+        // Используй метод .any((r) => r.title == _recipe!.title)
+        _isFavorite = _favoriteRecipes.any((r) => r.title == _recipe!.title);
+
+      });
+    }
+  }
+
+
+    Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      if (_isFavorite) {
+        // УДАЛЯЕМ
+        _favoriteRecipes.removeWhere((r) => r.title == _recipe!.title);
+        _isFavorite = false;
+      } else {
+        // ДОБАВЛЯЕМ
+        _favoriteRecipes.add(_recipe!);
+        _isFavorite = true;
+      }
+    });
+
+    // СОХРАНЯЕМ В ПАМЯТЬ
+    String encodedData = jsonEncode(_favoriteRecipes.map((e) => e.toJson()).toList());
+    
+    // сохраняем в "Избранное" через prefs.setString по ключу 'favorite_recipes'
+    
+    prefs.setString('favorite_recipes', encodedData);
+    
+  }
+
+
+
 
 
   // Списки для отслеживания галочек пользователя
   List<bool> _shoppingChecks = [];
   List<bool> _stepsChecks = [];
+
+  // Список для хранения избранных рецептов 
+  List<Recipe> _favoriteRecipes = []; // Список избранных рецептов
+
 
   @override
   void initState() {
@@ -102,11 +168,12 @@ class _RecipeScreenState extends State<RecipeScreen> {
       // Обновляем состояние экрана!
       setState(() {
         _recipe = realRecipe;
+       
         // Генерируем новые пустые списки галочек (false) под размер нового рецепта
         _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
         _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
       });
-
+      _loadFavorites();
     
     } else { 
       
@@ -123,10 +190,23 @@ class _RecipeScreenState extends State<RecipeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+            appBar: AppBar(
         title: const Text('Ваш рецепт 🧑‍🍳'),
         backgroundColor: Colors.green.shade100,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isFavorite ? Icons.favorite : Icons.favorite_border, // Красное сердечко или пустое
+              color: _isFavorite ? Colors.red : Colors.grey, // Цвет сердечка
+            ),
+            onPressed: () {
+              
+              _toggleFavorite();
+            },
+          ),
+        ],
       ),
+
 body: _errorMessage != null
           ? Center(
               child: Padding(
