@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "33990209738",
+    "project_id": "zerowastechef-557fd",
+    "storage_bucket": "zerowastechef-557fd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33990209738:android:f3d884668f44c4d49e0433",
+        "android_client_info": {
+          "package_name": "com.example.zero_waste_chef"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBgzasycWkn0dFTFcYHlJ3wetYCTdmTGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
