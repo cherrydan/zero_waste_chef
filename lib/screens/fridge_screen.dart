@@ -81,11 +81,13 @@ final List<PopularProduct> _popularProducts = [
 
   }
 
-    Future<void> _loadFridgeData() async {
+    Future<void> _loadFridgeData() async { // <-- Убрали параметр!
     try {
-      // 1. Попытка загрузить из Firestore (Облако)
       final db = FirebaseFirestore.instance;
       final doc = await db.collection('fridges').doc('user_1').get();
+
+      // После ЛЮБОГО await проверяем: жив ли еще наш экран?
+      if (!mounted) return; // Если пользователь закрыл экран — мгновенно выходим!
 
       if (doc.exists && doc.data() != null) {
         final List<dynamic> cloudList = doc.data()!['ingredients'] as List<dynamic>;
@@ -96,17 +98,23 @@ final List<PopularProduct> _popularProducts = [
             isUrgent: e['isUrgent'] as bool,
           )));
         });
-        print('Данные холодильника успешно загружены из облака Firestore! ☁️');
-        return; // Выходим из функции, если всё загрузилось из облака
+
+        // Показываем зеленый успех (используем встроенный context)
+        _showInfo('Данные холодильника успешно загружены из облака! ☁️', Colors.green);
+        return;
       }
     } catch (e) {
-      print('Офлайн-режим: не удалось загрузить из Firestore ($e). Пробуем локальную память...');
+      if (!mounted) return; // Снова проверка после await
+      // Красная ошибка
+      _showInfo('Офлайн-режим: не удалось загрузить из облака. Пробуем локальную память...', Colors.red);
     }
 
-    // 2. Если облако недоступно или пусто — грузим из локальной памяти SharedPreferences
+    // 2. Локальная память
     final prefs = await SharedPreferences.getInstance();
-    final savedString = prefs.getString('fridge_list');
     
+    if (!mounted) return; // Снова проверка после await
+    
+    final savedString = prefs.getString('fridge_list');
     if (savedString == null || savedString.isEmpty) return;
     
     try {
@@ -118,11 +126,25 @@ final List<PopularProduct> _popularProducts = [
           isUrgent: e['isUrgent'] as bool,
         )));
       });
-      print('Данные холодильника загружены локально из SharedPreferences. 💾');
+      // Синее/оранжевое информационное сообщение
+      _showInfo('Данные холодильника загружены локально из SharedPreferences. 💾', Colors.blue);
     } catch (e) {
       await prefs.remove('fridge_list');
     }
   }
+
+  // Наша маленькая вспомогательная функция для показа сообщений
+  void _showInfo(String message, Color color) {
+    if (!mounted) return; // Защита: не показываем сообщения на мертвом экране
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: const Duration(seconds: 2), // Сообщение исчезнет через 2 секунды
+      ),
+    );
+  }
+
 
 
 
@@ -200,7 +222,9 @@ final List<PopularProduct> _popularProducts = [
     @override
   void initState() {
     super.initState();
-    _loadFridgeData(); // Загружаем продукты из памяти смартфона
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFridgeData(); // Загружаем продукты из памяти смартфона
+    });
   }
 
   Widget _buildFridgeBody() {
