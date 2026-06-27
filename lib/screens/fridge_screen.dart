@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; 
 import 'recipe_screen.dart';
 import 'favorites_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
     
    
 
@@ -69,31 +70,60 @@ final List<PopularProduct> _popularProducts = [
     
     // Кодируем в одну большую JSON-строку и сохраняем
     await prefs.setString('fridge_list', jsonEncode(listJson));
+
+    // 1. Получаем доступ к базе данных Firestore
+    final db = FirebaseFirestore.instance;
+
+// 2. Отправляем данные в папку 'fridges' под каким-то ID (например, 'user_1')
+    await db.collection('fridges').doc('user_1').set({
+      'ingredients': listJson, // наш список ингредиентов в JSON-виде
+    });
+
   }
 
-  // Функция загрузки холодильника из памяти телефона при старте
-  Future<void> _loadFridgeData() async {
+    Future<void> _loadFridgeData() async {
+    try {
+      // 1. Попытка загрузить из Firestore (Облако)
+      final db = FirebaseFirestore.instance;
+      final doc = await db.collection('fridges').doc('user_1').get();
+
+      if (doc.exists && doc.data() != null) {
+        final List<dynamic> cloudList = doc.data()!['ingredients'] as List<dynamic>;
+        setState(() {
+          _ingredients.clear();
+          _ingredients.addAll(cloudList.map((e) => Ingredient(
+            name: e['name'] as String,
+            isUrgent: e['isUrgent'] as bool,
+          )));
+        });
+        print('Данные холодильника успешно загружены из облака Firestore! ☁️');
+        return; // Выходим из функции, если всё загрузилось из облака
+      }
+    } catch (e) {
+      print('Офлайн-режим: не удалось загрузить из Firestore ($e). Пробуем локальную память...');
+    }
+
+    // 2. Если облако недоступно или пусто — грузим из локальной памяти SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     final savedString = prefs.getString('fridge_list');
     
-    // Если в памяти еще ничего нет (первый запуск) — ничего не делаем
     if (savedString == null || savedString.isEmpty) return;
     
     try {
       final List<dynamic> decodedList = jsonDecode(savedString);
       setState(() {
-        _ingredients.clear(); // Очищаем дефолтные продукты
-        // Заполняем список тем, что прочитали из памяти
+        _ingredients.clear();
         _ingredients.addAll(decodedList.map((e) => Ingredient(
           name: e['name'] as String,
           isUrgent: e['isUrgent'] as bool,
         )));
       });
+      print('Данные холодильника загружены локально из SharedPreferences. 💾');
     } catch (e) {
-      // Если данные вдруг повредились — очищаем ключ
       await prefs.remove('fridge_list');
     }
   }
+
 
 
   // кастомизация промпта
