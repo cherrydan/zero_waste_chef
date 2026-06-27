@@ -192,8 +192,9 @@ final List<PopularProduct> _popularProducts = [
     // Добавь новый ингредиент в наш список _ingredients.
     // Имя ингредиента должно браться из product.name.
     _ingredients.add(Ingredient(name: product.name));
-
+    
   });
+  _saveFridgeData(); // Сохраняемся
 }
 
 
@@ -204,6 +205,7 @@ final List<PopularProduct> _popularProducts = [
       _ingredients.removeAt(index);
       
     });
+    _saveFridgeData(); // Сохраняемся
   }
 
   // Функция переключения "срочности" продукта
@@ -211,6 +213,7 @@ final List<PopularProduct> _popularProducts = [
     setState(() {
       _ingredients[index].isUrgent = !_ingredients[index].isUrgent;
     });
+    _saveFridgeData(); // Сохраняемся
   }
 
   @override
