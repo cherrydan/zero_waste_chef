@@ -216,6 +216,46 @@ final List<PopularProduct> _popularProducts = [
     _saveFridgeData(); // Сохраняемся
   }
 
+  // Очистка списка
+    void _clearAll() {
+    setState(() {
+      _ingredients.clear(); // Очищаем список в памяти телефона
+    });
+    _saveFridgeData(); // Отправляем пустой список в Firebase и SharedPreferences
+  }
+
+  // вызов диалогового окна для подтверждения очистки холодильника
+    void _showConfirmDeleteDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Очистить всё? 🗑️'),
+          content: const Text('Вы уверены, что хотите удалить все продукты из холодильника? Это действие нельзя отменить.'),
+          actions: [
+            // Кнопка "Отмена"
+            TextButton(
+              onPressed: () => Navigator.pop(context), // Просто закрываем окно
+              child: const Text('Отмена'),
+            ),
+            // Кнопка "Удалить"
+            TextButton(
+              onPressed: () {
+                _clearAll(); // Вызываем твою функцию очистки!
+                Navigator.pop(context); // Закрываем диалоговое окно
+              },
+              child: const Text(
+                'Удалить всё',
+                style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
   @override
   void dispose() {
     _controller.dispose(); // Всегда очищаем контроллеры для предотвращения утечек памяти
@@ -443,6 +483,15 @@ final List<PopularProduct> _popularProducts = [
         appBar: AppBar(
           title: const Text('Zero Waste Chef 🍏'),
           backgroundColor: Colors.green.shade100,
+           // ==========================================
+          // ВСТАВЛЯЕМ СЮДА НАШУ КНОПКУ ОЧИСТКИ:
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
+              onPressed: _showConfirmDeleteDialog, // Вызываем диалог подтверждения
+            ),
+          ],
+          // ==========================================
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.kitchen), text: 'Холодильник'),
