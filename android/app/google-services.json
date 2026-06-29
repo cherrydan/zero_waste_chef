@@ -12,7 +12,20 @@
           "package_name": "com.example.zero_waste_chef"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "33990209738-fdh11hi22qh0e1dmduekr3ltcg755hin.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.zero_waste_chef",
+            "certificate_hash": "a7c15b01e298f1d3d54d43e5040b280d74d9a455"
+          }
+        },
+        {
+          "client_id": "33990209738-h3b8rq57aa90vl7dc1km431t6sm34jaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDBgzasycWkn0dFTFcYHlJ3wetYCTdmTGQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "33990209738-h3b8rq57aa90vl7dc1km431t6sm34jaq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "33990209738-o7l78t856m1dbjs8g0upahaa6qlqsu9h.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.zeroWasteChef"
+              }
+            }
+          ]
         }
       }
     }

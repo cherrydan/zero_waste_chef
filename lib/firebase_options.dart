@@ -56,13 +56,14 @@ class DefaultFirebaseOptions {
     projectId: 'zerowastechef-557fd',
     storageBucket: 'zerowastechef-557fd.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyC8fJn90k0pwEgLUgOEmgn9gXl8t8x-BX0',
     appId: '1:33990209738:ios:d201b4f68211bcd49e0433',
     messagingSenderId: '33990209738',
     projectId: 'zerowastechef-557fd',
     storageBucket: 'zerowastechef-557fd.firebasestorage.app',
+    androidClientId: '33990209738-fdh11hi22qh0e1dmduekr3ltcg755hin.apps.googleusercontent.com',
+    iosClientId: '33990209738-o7l78t856m1dbjs8g0upahaa6qlqsu9h.apps.googleusercontent.com',
     iosBundleId: 'com.example.zeroWasteChef',
   );
 }
