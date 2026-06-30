@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart'; // Только этот импорт!
-import 'package:zero_waste_chef/app_logger.dart'; // Наш логгер
+import 'package:zero_waste_chef/services/app_logger.dart'; // Наш логгер
     
 
 

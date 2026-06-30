@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Импорт Firebase
+import 'package:zero_waste_chef/screens/auth_wrapper.dart';
 import 'firebase_options.dart'; // Настройки Firebase
-import 'screens/fridge_screen.dart'; // Наш главный экран
+// Наш главный экран
 
 void main() async {
   // 1. Убеждаемся, что движок Flutter готов к работе
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const FridgeScreen(), // Запускаем с экрана холодильника
+      home: const AuthWrapper(), // Запускаем с экрана холодильника
     );
   }
 }

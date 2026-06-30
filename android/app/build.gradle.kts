@@ -17,6 +17,10 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+     buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.zero_waste_chef"
@@ -26,7 +30,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        resValue("string", "web_client_id", "33990209738-h3b8rq57aa90vl7dc1km431t6sm34jaq.apps.googleusercontent.com")
+        buildConfigField("String", "WEB_CLIENT_ID", "\"33990209738-h3b8rq57aa90vl7dc1km431t6sm34jaq.apps.googleusercontent.com\"")
     }
 
     buildTypes {
