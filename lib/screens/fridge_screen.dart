@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zero_waste_chef/services/auth_service.dart';
 import 'dart:convert'; 
 import 'recipe_screen.dart';
 import 'favorites_screen.dart';
@@ -74,42 +76,51 @@ final List<PopularProduct> _popularProducts = [
     // 1. Получаем доступ к базе данных Firestore
     final db = FirebaseFirestore.instance;
 
-// 2. Отправляем данные в папку 'fridges' под каким-то ID (например, 'user_1')
-    await db.collection('fridges').doc('user_1').set({
+    // Получаем уникальный id пользователя
+    final user = FirebaseAuth.instance.currentUser; 
+    if (user != null) {
+
+// 2. Отправляем данные в папку 'fridges' под его уникальным id)
+    await db.collection('fridges').doc(user.uid).set({
       'ingredients': listJson, // наш список ингредиентов в JSON-виде
     });
 
   }
+  else {
+      return;
+    }
+  }
 
-    Future<void> _loadFridgeData() async { // <-- Убрали параметр!
-    try {
-      final db = FirebaseFirestore.instance;
-      final doc = await db.collection('fridges').doc('user_1').get();
+  Future<void> _loadFridgeData() async {
+    final user = FirebaseAuth.instance.currentUser;
 
-      // После ЛЮБОГО await проверяем: жив ли еще наш экран?
-      if (!mounted) return; // Если пользователь закрыл экран — мгновенно выходим!
+    // Если юзер вошел - пробуем облако
+    if (user != null) {
+      try {
+        final db = FirebaseFirestore.instance;
+        final doc = await db.collection('fridges').doc(user.uid).get();
 
-      if (doc.exists && doc.data() != null) {
-        final List<dynamic> cloudList = doc.data()!['ingredients'] as List<dynamic>;
-        setState(() {
-          _ingredients.clear();
-          _ingredients.addAll(cloudList.map((e) => Ingredient(
-            name: e['name'] as String,
-            isUrgent: e['isUrgent'] as bool,
-          )));
-        });
+        if (!mounted) return;
 
-        // Показываем зеленый успех (используем встроенный context)
-        _showInfo('Данные холодильника успешно загружены из облака! ☁️', Colors.green);
-        return;
+        if (doc.exists && doc.data() != null) {
+          final List<dynamic> cloudList = doc.data()!['ingredients'] as List<dynamic>;
+          setState(() {
+            _ingredients.clear();
+            _ingredients.addAll(cloudList.map((e) => Ingredient(
+              name: e['name'] as String,
+              isUrgent: e['isUrgent'] as bool,
+            )));
+          });
+          _showInfo('Данные успешно загружены из облака! ☁️', Colors.green);
+          return;
+        }
+      } catch (e) {
+        if (!mounted) return;
+        _showInfo('Офлайн-режим: не удалось загрузить из облака. ☁️', Colors.red);
       }
-    } catch (e) {
-      if (!mounted) return; // Снова проверка после await
-      // Красная ошибка
-      _showInfo('Офлайн-режим: не удалось загрузить из облака. Пробуем локальную память...', Colors.red);
     }
 
-    // 2. Локальная память
+    // Если не вошел или облако пусто — грузим локально
     final prefs = await SharedPreferences.getInstance();
     
     if (!mounted) return; // Снова проверка после await
@@ -489,9 +500,20 @@ final List<PopularProduct> _popularProducts = [
             IconButton(
               icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
               onPressed: _showConfirmDeleteDialog, // Вызываем диалог подтверждения
-            ),
+            ), // Кнопка очистки
+            
+            
+            IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+            await AuthService().signOut();
+          },
+   ), // Кнопка logout
           ],
           // ==========================================
+            
+   
+
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.kitchen), text: 'Холодильник'),
