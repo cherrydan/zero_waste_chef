@@ -4,6 +4,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:zero_waste_chef/services/app_logger.dart'; // Наш логгер
+
 
 
 // Модель данных рецепта (из Шага 1)
@@ -51,6 +55,35 @@ class _RecipeScreenState extends State<RecipeScreen> {
     bool _isFavorite = false; // Состояние сердечка "Избранное". По умолчанию рецепт не в избранном
 
     Future<void> _loadFavorites() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // 1. Сначала пробуем загрузить из облака (Firestore)
+    if (user != null) {
+      try {
+        final db = FirebaseFirestore.instance;
+        final doc = await db.collection('favorites').doc(user.uid).get();
+
+        if (doc.exists && doc.data() != null && doc.data()!['recipes'] != null) {
+          final List<dynamic> cloudRecipes = doc.data()!['recipes'] as List<dynamic>;
+          
+          setState(() {
+            _favoriteRecipes = cloudRecipes.map((e) => Recipe(
+              title: e['recipe_name'] as String,
+              shoppingList: List<String>.from(e['shopping_list']),
+              steps: List<String>.from(e['steps']),
+            )).toList();
+
+            // Проверяем, есть ли наш текущий рецепт в этом списке
+            _isFavorite = _favoriteRecipes.any((r) => r.title == _recipe!.title);
+          });
+          return; // Успешно загрузили из облака, выходим!
+        }
+      } catch (e) {
+        logger.e("Ошибка загрузки избранного из Firestore: $e");
+      }
+    }
+
+    // 2. Если не вошли или нет интернета — используем локальный SharedPreferences (твой текущий код)
     final prefs = await SharedPreferences.getInstance();
     final String? favoritesString = prefs.getString('favorite_recipes');
 
@@ -63,12 +96,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           steps: List<String>.from(e['steps']),
         )).toList();
         
-        // Проверь, содержится ли текущий рецепт (_recipe!) в списке _favoriteRecipes.
-        // Если да, установи _isFavorite = true.
-        // Подсказка: для сравнения рецептов можно использовать их title (название).
-        // Используй метод .any((r) => r.title == _recipe!.title)
         _isFavorite = _favoriteRecipes.any((r) => r.title == _recipe!.title);
-
       });
     }
   }
@@ -79,24 +107,34 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
     setState(() {
       if (_isFavorite) {
-        // УДАЛЯЕМ
         _favoriteRecipes.removeWhere((r) => r.title == _recipe!.title);
         _isFavorite = false;
       } else {
-        // ДОБАВЛЯЕМ
         _favoriteRecipes.add(_recipe!);
         _isFavorite = true;
       }
     });
 
-    // СОХРАНЯЕМ В ПАМЯТЬ
+    // 1. Локальное сохранение
     String encodedData = jsonEncode(_favoriteRecipes.map((e) => e.toJson()).toList());
-    
-    // сохраняем в "Избранное" через prefs.setString по ключу 'favorite_recipes'
-    
-    prefs.setString('favorite_recipes', encodedData);
-    
+    await prefs.setString('favorite_recipes', encodedData);
+
+    // 2. Облачное сохранение
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final db = FirebaseFirestore.instance;
+        final recipesJson = _favoriteRecipes.map((e) => e.toJson()).toList();
+
+        await db.collection('favorites').doc(user.uid).set({
+          'recipes': recipesJson, // Исправили на recipesJson!
+        });
+      } catch (e) {
+        logger.e("Не удалось сохранить рецепт в облако: $e");
+      }
+    }
   }
+
 
 
 

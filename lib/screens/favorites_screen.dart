@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'recipe_screen.dart'; // Нам нужна модель Recipe отсюда
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:zero_waste_chef/services/app_logger.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Импорт базы данных
+   
+
 
 
 class FavoritesScreen extends StatefulWidget {
@@ -23,10 +28,48 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   // Функция загрузки из SharedPreferences
     Future<void> _loadSavedRecipes() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? savedString = prefs.getString('favorite_recipes');
+    final user = FirebaseAuth.instance.currentUser;
 
-    if (savedString != null && savedString.isNotEmpty) {
+    // 1. Сначала пробуем загрузить из Firestore
+    if (user != null) {
+      try {
+        final db = FirebaseFirestore.instance;
+        final doc = await db.collection('favorites').doc(user.uid).get();
+
+        if (!mounted) return;
+
+        if (doc.exists && doc.data() != null && doc.data()!['recipes'] != null) {
+          final List<dynamic> cloudRecipes = doc.data()!['recipes'] as List<dynamic>;
+          setState(() {
+            _savedRecipes = cloudRecipes.map((e) => Recipe(
+              title: e['recipe_name'] as String,
+              shoppingList: List<String>.from(e['shopping_list']),
+              steps: List<String>.from(e['steps']),
+            )).toList();
+          });
+          logger.i("Рецепты успешно загружены из облака Firestore! ☁️");
+          return; // Успешно загрузили, выходим!
+        }
+      } catch (e) {
+        logger.e("Ошибка загрузки избранного из Firestore: $e");
+      }
+    }
+
+    // 2. Офлайн-режим: если не вошли или нет сети — грузим локально
+    final prefs = await SharedPreferences.getInstance();
+    
+    if (!mounted) return;
+    
+    final String? savedString = prefs.getString('favorite_recipes');
+    
+    if (savedString == null || savedString.isEmpty) {
+      setState(() {
+        _savedRecipes.clear();
+      });
+      return;
+    }
+
+    try {
       final List<dynamic> decodedList = jsonDecode(savedString);
       setState(() {
         _savedRecipes = decodedList.map((e) => Recipe(
@@ -35,12 +78,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           steps: List<String>.from(e['steps']),
         )).toList();
       });
-    } else {
-      setState(() {
-        _savedRecipes.clear(); 
-      });
-    } // <-- Скобка закрывает else
-  } // <-- ЭТА скобка закрывает всю функцию _loadSavedRecipes
+      logger.i("Рецепты загружены локально из SharedPreferences. 💾");
+    } catch (e) {
+      await prefs.remove('favorite_recipes');
+    }
+  }
 
 
  @override
