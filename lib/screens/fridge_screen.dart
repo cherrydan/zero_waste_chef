@@ -10,13 +10,41 @@ import 'package:cloud_firestore/cloud_firestore.dart';
    
 
 
-// Сначала создадим модель нашего ингредиента
 class Ingredient {
   final String name;
-  bool isUrgent; // Флаг: нужно ли съесть срочно (актуально для южных стран!)
+  bool isUrgent;
+  final DateTime? expiryDate; // Наше новое поле!
 
-  Ingredient({required this.name, this.isUrgent = false});
+  Ingredient({
+    required this.name,
+    this.isUrgent = false,
+    this.expiryDate,
+  });
+
+  // Превращаем в JSON (для сохранения в SharedPreferences и Firestore)
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'isUrgent': isUrgent,
+      // В JSON нельзя сохранить объект DateTime напрямую, 
+      // поэтому мы превращаем его в строку формата ISO-8601 (например, "2026-07-02")
+      'expiryDate': expiryDate?.toIso8601String(), 
+    };
+  }
+
+  // Создаем объект из JSON (для загрузки)
+  factory Ingredient.fromJson(Map<String, dynamic> json) {
+    return Ingredient(
+      name: json['name'] as String,
+      isUrgent: json['isUrgent'] as bool,
+      // Превращаем строку ISO обратно в объект DateTime (если она есть)
+      expiryDate: json['expiryDate'] != null 
+          ? DateTime.parse(json['expiryDate'] as String) 
+          : null,
+    );
+  }
 }
+
 
 // Популярные продукты в виде иконок для быстрого добавления
 class PopularProduct {
@@ -49,47 +77,66 @@ class _FridgeScreenState extends State<FridgeScreen> {
   final List<String> _diets = ['Обычная', 'Средиземноморская', 'Вегетарианская'];
   String _selectedDiet = 'Обычная'; // Переменная для хранения выбранной диеты
 
+  DateTime? _selectedExpiryDate; // Временная переменная для нового продукта
 
-final List<PopularProduct> _popularProducts = [
-  PopularProduct(name: 'Помидоры', emoji: '🍅'),
-  PopularProduct(name: 'Куриное филе', emoji: '🍗'),
-  PopularProduct(name: 'Сыр Фета', emoji: '🧀'),
-  PopularProduct(name: 'Яйца', emoji: '🥚'),
-  
-  PopularProduct(name: 'Мясо', emoji: '🥩'),
-  PopularProduct(name: 'Морепродукты', emoji: '🍤'),
-  PopularProduct(name: 'Молоко', emoji: '🥛'),
-];
+  final List<PopularProduct> _popularProducts = [
+    PopularProduct(name: 'Помидоры', emoji: '🍅'),
+    PopularProduct(name: 'Куриное филе', emoji: '🍗'),
+    PopularProduct(name: 'Сыр Фета', emoji: '🧀'),
+    PopularProduct(name: 'Яйца', emoji: '🥚'),
+    PopularProduct(name: 'Мясо', emoji: '🥩'),
+    PopularProduct(name: 'Морепродукты', emoji: '🍤'),
+    PopularProduct(name: 'Молоко', emoji: '🥛'),
+  ];
 
-  // Функция сохранения холодильника в память телефона (в формате JSON)
+  // Функция сохранения холодильника в память телефона и Firestore
   Future<void> _saveFridgeData() async {
     final prefs = await SharedPreferences.getInstance();
-    // Превращаем список объектов Ingredient в список простых карт (Map)
-    final listJson = _ingredients.map((it) => {
-      'name': it.name, 
-      'isUrgent': it.isUrgent
-    }).toList();
     
-    // Кодируем в одну большую JSON-строку и сохраняем
+    // Используем наш новый метод toJson() для правильного сохранения дат!
+    final listJson = _ingredients.map((it) => it.toJson()).toList();
+    
     await prefs.setString('fridge_list', jsonEncode(listJson));
 
-    // 1. Получаем доступ к базе данных Firestore
     final db = FirebaseFirestore.instance;
-
-    // Получаем уникальный id пользователя
     final user = FirebaseAuth.instance.currentUser; 
+    
     if (user != null) {
-
-// 2. Отправляем данные в папку 'fridges' под его уникальным id)
-    await db.collection('fridges').doc(user.uid).set({
-      'ingredients': listJson, // наш список ингредиентов в JSON-виде
-    });
-
-  }
-  else {
-      return;
+      await db.collection('fridges').doc(user.uid).set({
+        'ingredients': listJson,
+      });
     }
   }
+
+    String _formatDate(DateTime? date) {
+    if (date == null) return '';
+    // Дописываем ноль слева, если число меньше 10 (например, "2" станет "02")
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day.$month';
+  }
+
+
+  // Функция выбора даты через календарь
+  Future<void> _selectExpiryDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(), 
+      firstDate: DateTime.now(),   
+      lastDate: DateTime.now().add(const Duration(days: 365)), 
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedExpiryDate = picked;
+      });
+    }
+  }
+
+  // ==========================================
+  // ДАЛЬШЕ ИДУТ ТВОИ ДРУГИЕ ФУНКЦИИ (например, _loadFridgeData, _addIngredient и т.д.)
+
+
 
   Future<void> _loadFridgeData() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -104,13 +151,13 @@ final List<PopularProduct> _popularProducts = [
 
         if (doc.exists && doc.data() != null) {
           final List<dynamic> cloudList = doc.data()!['ingredients'] as List<dynamic>;
-          setState(() {
-            _ingredients.clear();
-            _ingredients.addAll(cloudList.map((e) => Ingredient(
-              name: e['name'] as String,
-              isUrgent: e['isUrgent'] as bool,
-            )));
-          });
+                  // Было: cloudList.map((e) => Ingredient(name: e['name'], isUrgent: e['isUrgent']))
+        // Станет:
+        setState(() {
+          _ingredients.clear();
+          _ingredients.addAll(cloudList.map((e) => Ingredient.fromJson(e as Map<String, dynamic>)));
+        });
+
           _showInfo('Данные успешно загружены из облака! ☁️', Colors.green);
           return;
         }
@@ -130,13 +177,13 @@ final List<PopularProduct> _popularProducts = [
     
     try {
       final List<dynamic> decodedList = jsonDecode(savedString);
+      // Было: decodedList.map((e) => Ingredient(name: e['name'], isUrgent: e['isUrgent']))
+      // Станет:
       setState(() {
         _ingredients.clear();
-        _ingredients.addAll(decodedList.map((e) => Ingredient(
-          name: e['name'] as String,
-          isUrgent: e['isUrgent'] as bool,
-        )));
+        _ingredients.addAll(decodedList.map((e) => Ingredient.fromJson(e as Map<String, dynamic>)));
       });
+
       // Синее/оранжевое информационное сообщение
       _showInfo('Данные холодильника загружены локально из SharedPreferences. 💾', Colors.blue);
     } catch (e) {
@@ -186,27 +233,48 @@ final List<PopularProduct> _popularProducts = [
   final TextEditingController _controller = TextEditingController();
 
   // Функция добавления нового продукта
-  void _addIngredient() {
+    void _addIngredient() {
     if (_controller.text.trim().isEmpty) return;
 
     setState(() {
-
-      _ingredients.add(Ingredient(name: _controller.text.trim())); 
+      // Добавляем ингредиент с нашей выбранной датой!
+      _ingredients.add(Ingredient(
+        name: _controller.text.trim(),
+        expiryDate: _selectedExpiryDate, // Передаем дату сюда!
+      ));
+      
       _controller.clear();
+      _selectedExpiryDate = null; // Очищаем временную дату для следующего продукта!
     });
-    _saveFridgeData();
+    
+    _saveFridgeData(); // Сохраняем в память и Firestore
   }
 
-  // Добавляем новый ингридиент через меню популярных продуктов
-  void _addPopularProduct(PopularProduct product) {
-  setState(() {
-    // Добавь новый ингредиент в наш список _ingredients.
-    // Имя ингредиента должно браться из product.name.
-    _ingredients.add(Ingredient(name: product.name));
+  bool _isProductExpiringSoon(DateTime? expiryDate) {
+    if (expiryDate == null) return false;
     
-  });
-  _saveFridgeData(); // Сохраняемся
-}
+    // Считаем разницу в днях между сроком годности и сегодняшним днем
+    final difference = expiryDate.difference(DateTime.now()).inDays;
+    
+    // Если осталось 2 дня или меньше — продукт "горит"!
+    return difference <= 2;
+  }
+
+
+
+  // Добавляем новый ингридиент через меню популярных продуктов
+    void _addPopularProduct(PopularProduct product) {
+    setState(() {
+      _ingredients.add(Ingredient(
+        name: product.name,
+        expiryDate: _selectedExpiryDate, // Передаем временно выбранную дату!
+        // Если дата горит — умная срочность сама покрасит карточку!
+      ));
+      _selectedExpiryDate = null; // Сбрасываем дату для следующего продукта
+    });
+    _saveFridgeData(); // Синхронизируем с облаком
+  }
+
 
 
   // Функция удаления продукта
@@ -291,14 +359,24 @@ final List<PopularProduct> _popularProducts = [
             children: [
               Expanded(
                 child: TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    hintText: 'Например: Шпинат, Сыр...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                controller: _controller,
+                decoration: InputDecoration(
+                hintText: 'Например: Шпинат, Сыр...',
+                border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
                 ),
+            // ДОБАВЛЯЕМ КНОПКУ КАЛЕНДАРЯ ВНУТРЬ ПОЛЯ:
+            suffixIcon: IconButton(
+            icon: Icon(
+            Icons.calendar_month,
+            // Если дата выбрана — иконка станет зеленой, если нет — серой
+            color: _selectedExpiryDate != null ? Colors.green : Colors.grey,
+      ),
+      onPressed: () => _selectExpiryDate(context), // Вызываем наш календарь!
+    ),
+  ),
+),
+
               ),
               const SizedBox(width: 8),
               IconButton.filled(
@@ -375,11 +453,16 @@ final List<PopularProduct> _popularProducts = [
                 : ListView.builder(
                     itemCount: _ingredients.length,
                     itemBuilder: (context, index) {
-                      final item = _ingredients[index];
-                      return Container(
+                    final item = _ingredients[index];
+                  
+                    // Создаем временную переменную для удобства, чтобы не писать длинную формулу три раза:
+                    final bool isRedStatus = item.isUrgent || _isProductExpiringSoon(item.expiryDate);
+
+                    return Container(
                         margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
                         decoration: BoxDecoration(
-                          color: item.isUrgent ? Colors.red.shade50 : Colors.white,
+                          // Твоя умная логика цвета фона!
+                          color: isRedStatus ? Colors.red.shade50 : Colors.white,
                           borderRadius: BorderRadius.circular(16.0),
                           boxShadow: [
                             BoxShadow(
@@ -390,26 +473,32 @@ final List<PopularProduct> _popularProducts = [
                           ],
                         ),
                         child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                           leading: IconButton(
                             icon: Icon(
-                              item.isUrgent ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                              color: item.isUrgent ? Colors.red : Colors.grey,
+                              // Если статус красный — показываем треугольник, если нет — круг с галочкой
+                              isRedStatus ? Icons.warning_amber_rounded : Icons.check_circle_outline,
+                              color: isRedStatus ? Colors.red : Colors.grey,
                             ),
                             onPressed: () => _toggleUrgent(index),
                           ),
                           title: Text(
                             item.name,
                             style: TextStyle(
-                              fontWeight: item.isUrgent ? FontWeight.bold : FontWeight.normal,
-                              color: item.isUrgent ? Colors.red.shade900 : Colors.black87,
+                              fontWeight: isRedStatus ? FontWeight.bold : FontWeight.normal,
+                              color: isRedStatus ? Colors.red.shade900 : Colors.black87,
                             ),
                           ),
+                          subtitle: item.expiryDate != null 
+                              ? Text('Годен до: ${_formatDate(item.expiryDate)}') 
+                              : null,
                           trailing: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.grey),
                             onPressed: () => _removeIngredient(index),
                           ),
                         ),
                       );
+
                     },
                   ),
           ),
