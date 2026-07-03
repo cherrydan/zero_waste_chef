@@ -57,7 +57,12 @@ class PopularProduct {
 
 
 class FridgeScreen extends StatefulWidget {
-  const FridgeScreen({super.key});
+  
+
+  final FirebaseFirestore? firestore; // опциональная база
+  final FirebaseAuth? auth; // опциональная аутентификация
+
+  const FridgeScreen({super.key, this.firestore, this.auth});
 
   @override
   State<FridgeScreen> createState() => _FridgeScreenState();
@@ -66,6 +71,10 @@ class FridgeScreen extends StatefulWidget {
 }
 
 class _FridgeScreenState extends State<FridgeScreen> {
+
+  // Геттеры для базы данных и авторизации:
+  FirebaseFirestore get db => widget.firestore ?? FirebaseFirestore.instance;
+  FirebaseAuth get auth => widget.auth ?? FirebaseAuth.instance;
   // Список продуктов в нашем холодильнике
   final List<Ingredient> _ingredients = [
     Ingredient(name: 'Помидоры', isUrgent: true),
@@ -98,8 +107,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
     
     await prefs.setString('fridge_list', jsonEncode(listJson));
 
-    final db = FirebaseFirestore.instance;
-    final user = FirebaseAuth.instance.currentUser; 
+    
+    final user = auth.currentUser; 
     
     if (user != null) {
       await db.collection('fridges').doc(user.uid).set({
@@ -139,12 +148,12 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
 
   Future<void> _loadFridgeData() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = auth.currentUser;
 
     // Если юзер вошел - пробуем облако
     if (user != null) {
       try {
-        final db = FirebaseFirestore.instance;
+        
         final doc = await db.collection('fridges').doc(user.uid).get();
 
         if (!mounted) return;
