@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'recipe_screen.dart';
 import 'favorites_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-    
+import 'package:zero_waste_chef/utils/date_helpers.dart';    
    
 
 
@@ -259,14 +259,15 @@ class _FridgeScreenState extends State<FridgeScreen> {
     _saveFridgeData(); // Сохраняем в память и Firestore
   }
 
-  bool _isProductExpiringSoon(DateTime? expiryDate) {
-    if (expiryDate == null) return false;
+    String _getExpiredDaysText(DateTime? expiryDate) {
+    if (expiryDate == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final expiry = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
     
-    // Считаем разницу в днях между сроком годности и сегодняшним днем
-    final difference = expiryDate.difference(DateTime.now()).inDays;
-    
-    // Если осталось 2 дня или меньше — продукт "горит"!
-    return difference <= 2;
+    // Считаем разницу между "сегодня" и "днем истечения срока"
+    final diff = today.difference(expiry).inDays;
+    return 'ПРОСРОЧЕНО НА $diff ДН.! ⚠️';
   }
 
 
@@ -462,16 +463,35 @@ class _FridgeScreenState extends State<FridgeScreen> {
                 : ListView.builder(
                     itemCount: _ingredients.length,
                     itemBuilder: (context, index) {
-                    final item = _ingredients[index];
-                  
-                    // Создаем временную переменную для удобства, чтобы не писать длинную формулу три раза:
-                    final bool isRedStatus = item.isUrgent || _isProductExpiringSoon(item.expiryDate);
+                     final item = _ingredients[index];
+                      
+                      // Рассчитываем три статуса продукта:
+                      final bool isExpired = isProductExpired(item.expiryDate);
+                      final bool isExpiringSoon = isProductExpiringSoon(item.expiryDate);
+                      final bool isRedStatus = item.isUrgent || isExpiringSoon;
 
-                    return Container(
+                      // Настраиваем цвета в зависимости от статуса
+                      Color cardColor = Colors.white;
+                      Color contentColor = Colors.black87;
+                      IconData leadingIcon = Icons.check_circle_outline;
+                      Color iconColor = Colors.grey;
+
+                      if (isExpired) {
+                        cardColor = Colors.grey.shade300; // Мертвый серый цвет для просрочки
+                        contentColor = Colors.red.shade900; // Тревожный красный текст
+                        leadingIcon = Icons.dangerous; // Иконка "Опасно" 💀
+                        iconColor = Colors.red.shade900;
+                      } else if (isRedStatus) {
+                        cardColor = Colors.red.shade50; // Пастельно-красный для срочного
+                        contentColor = Colors.red.shade900;
+                        leadingIcon = Icons.warning_amber_rounded; // Треугольник предупреждения ⚠️
+                        iconColor = Colors.red;
+                      }
+
+                      return Container(
                         margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 4.0),
                         decoration: BoxDecoration(
-                          // Твоя умная логика цвета фона!
-                          color: isRedStatus ? Colors.red.shade50 : Colors.white,
+                          color: cardColor, // Наш динамический цвет
                           borderRadius: BorderRadius.circular(16.0),
                           boxShadow: [
                             BoxShadow(
@@ -484,22 +504,26 @@ class _FridgeScreenState extends State<FridgeScreen> {
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
                           leading: IconButton(
-                            icon: Icon(
-                              // Если статус красный — показываем треугольник, если нет — круг с галочкой
-                              isRedStatus ? Icons.warning_amber_rounded : Icons.check_circle_outline,
-                              color: isRedStatus ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () => _toggleUrgent(index),
+                            icon: Icon(leadingIcon, color: iconColor),
+                            onPressed: isExpired ? null : () => _toggleUrgent(index), // Просроченные продукты нельзя "разжаловать" из срочных!
                           ),
                           title: Text(
                             item.name,
                             style: TextStyle(
-                              fontWeight: isRedStatus ? FontWeight.bold : FontWeight.normal,
-                              color: isRedStatus ? Colors.red.shade900 : Colors.black87,
+                              fontWeight: (isExpired || isRedStatus) ? FontWeight.bold : FontWeight.normal,
+                              color: contentColor,
                             ),
                           ),
                           subtitle: item.expiryDate != null 
-                              ? Text('Годен до: ${_formatDate(item.expiryDate)}') 
+                              ? Text(
+                                  isExpired 
+                                      ? _getExpiredDaysText(item.expiryDate) // Показываем грозный текст просрочки
+                                      : 'Годен до: ${_formatDate(item.expiryDate)}',
+                                  style: TextStyle(
+                                    color: isExpired ? Colors.red.shade900 : Colors.black54,
+                                    fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                )
                               : null,
                           trailing: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.grey),

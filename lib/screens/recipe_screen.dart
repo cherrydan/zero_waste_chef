@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zero_waste_chef/services/app_logger.dart'; // Наш логгер
-
+import 'package:zero_waste_chef/utils/date_helpers.dart'; 
 
 
 // Модель данных рецепта (из Шага 1)
@@ -180,9 +180,38 @@ class _RecipeScreenState extends State<RecipeScreen> {
   'Content-Type': 'application/json',
   'Authorization': 'Bearer $myKey',
   };
-      var aiPrompt = '''
-Приготовь блюдо строго на ${widget.portions} порции(й) из следующих продуктов: ${widget.selectedIngredients.map((e) => e.name).join(', ')}. 
-Добавь не больше 2 дешевых ингредиентов. Рецепт должен строго соответствовать диете: ${widget.diet}
+
+      // Форматируем список продуктов для ИИ с учетом их срочности и просрочки
+    final ingredientsPromptList = widget.selectedIngredients.map((e) {
+      final bool isExpired = isProductExpired(e.expiryDate);
+      final bool isExpiringSoon = e.isUrgent || isProductExpiringSoon(e.expiryDate);
+
+      if (isExpired) {
+        // Продукт просрочен
+        return '${e.name} (ПОМЕТКА: ПРОСРОЧЕН! Использовать С ОСТОРОЖНОСТЬЮ, только после глубокой ТЕРМИЧЕСКОЙ ОБРАБОТКИ. Для мяса/рыбы - ЗАПРЕТ!)';
+      } else if (isExpiringSoon) {
+        // Продукт срочный
+        return '${e.name} (ПОМЕТКА: СРОЧНО! Истекает срок годности, использовать ОБЯЗАТЕЛЬНО!)';
+      } else {
+        // Обычный продукт
+        return e.name;
+      }
+    }).join(', ');
+
+
+
+        var aiPrompt = '''
+Приготовь блюдо строго на ${widget.portions} порции(й) из следующих продуктов: $ingredientsPromptList. 
+
+ЖЕСТКИЕ ПРАВИЛА БЕЗОПАСНОСТИ:
+1.  **ПРОДУКТЫ С ПОМЕТКОЙ (СРОЧНО!)**: ДОЛЖНЫ быть использованы в рецепте в первую очередь, чтобы предотвратить порчу.
+2.  **ПРОДУКТЫ С ПОМЕТКОЙ (ПРОСРОЧЕН!)**:
+    *   Если это мясо, птица, рыба, морепродукты или грибы — **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО использовать их в рецепте**. Предложи пользователю безопасно утилизировать их.
+    *   Если это молочные продукты, овощи, фрукты, хлеб и т.п. — использовать можно **ТОЛЬКО при условии ГЛУБОКОЙ ТЕРМИЧЕСКОЙ ОБРАБОТКИ** (варка, тушение, выпечка при высокой температуре). Не предлагать салаты или блюда без термической обработки!
+    *   **Нельзя предлагать просроченные продукты без термической обработки!**
+
+3.  Добавь не больше 2 дешевых ингредиентов, если это необходимо. 
+4.  Рецепт должен строго соответствовать диете: ${widget.diet}.
 
 Ответ верни СТРОГО в формате JSON с ключами: 
 - 'recipe_name' (строка)
