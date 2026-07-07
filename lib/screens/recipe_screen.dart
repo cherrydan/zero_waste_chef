@@ -358,6 +358,40 @@ body: _errorMessage != null
 
             
             _buildStepsList(), // Вставляем наши интерактивные шаги готовки
+
+                      // ... твои шаги готовки или другие виджеты ...
+          
+          const SizedBox(height: 24), // Отступ перед дисклеймером
+
+          // НАШ ЮРИДИЧЕСКИЙ ДИСКЛЕЙМЕР:
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.gavel_rounded, color: Colors.grey.shade600, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Дисклеймер: ИИ предлагает варианты рецептов на основе ваших продуктов, но не оценивает их реальную свежесть. Всегда проверяйте запах, вид и срок годности ингредиентов самостоятельно перед употреблением. Разработчики не несут ответственности за возможные пищевые расстройства.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.black54,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16), // Отступ до самого низа экрана
+
           ],
         ),
       ),
