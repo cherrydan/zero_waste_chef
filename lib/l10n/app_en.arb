@@ -1,0 +1,9 @@
+{
+  "@@locale": "en",
+  "appTitle": "Zero Waste Chef🍏",
+  "fridgeTab": "Fridge",
+  "favoritesTab": "Favorites",
+  "profileTab": "Profile",
+  "addIngredientHint": "Example: Spinach, Cheese...",
+  "emptyFridge": "Your fridge is empty 🏜"
+}

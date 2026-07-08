@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart'; // Импорт Firebase
 import 'package:zero_waste_chef/screens/auth_wrapper.dart';
 import 'firebase_options.dart'; // Настройки Firebase
+import 'l10n/app_localizations.dart'; // Наш новый авто-переводчик
+   
+
+   
+
+
 // Наш главный экран
 
 void main() async {
@@ -22,14 +28,22 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+        return MaterialApp(
       title: 'Zero Waste Chef',
-      debugShowCheckedModeBanner: false, // Убираем дебаг-баннер
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
-      home: const AuthWrapper(), // Запускаем с экрана холодильника
+      
+      // ==========================================
+      // ДОБАВЛЯЕМ СЮДА ЭТИ ДВЕ СТРОЧКИ:
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      // ==========================================
+
+      home: const AuthWrapper(),
     );
+
   }
 }

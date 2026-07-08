@@ -1,0 +1,9 @@
+{
+  "@@locale": "es",
+  "appTitle": "Chef Zero Waste 🍏",
+  "fridgeTab": "Nevera",
+  "favoritesTab": "Favoritos",
+  "profileTab": "Perfil",
+  "addIngredientHint": "Ejemplo: Espinacas, Queso...",
+  "emptyFridge": "La nevera está vacía 🏜"
+}

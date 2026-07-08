@@ -7,6 +7,8 @@ import 'recipe_screen.dart';
 import 'favorites_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zero_waste_chef/utils/date_helpers.dart';    
+import '../l10n/app_localizations.dart';
+   
    
 
 
@@ -623,13 +625,23 @@ class _FridgeScreenState extends State<FridgeScreen> {
               onPressed: _showConfirmDeleteDialog,
             ),
           ],
-          bottom: const TabBar(
+            bottom: TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.kitchen), text: 'Холодильник'),
-              Tab(icon: Icon(Icons.favorite), text: 'Избранное'),
-              Tab(icon: Icon(Icons.person), text: 'Профиль'), // <--- Добавили вкладку!
+              Tab(
+                icon: const Icon(Icons.kitchen), 
+                text: AppLocalizations.of(context)!.fridgeTab, // вместо 'Холодильник'
+              ),
+              Tab(
+                icon: const Icon(Icons.favorite), 
+                text: AppLocalizations.of(context)!.favoritesTab, // вместо 'Избранное'
+              ),
+              Tab(
+                icon: const Icon(Icons.person), 
+                text: AppLocalizations.of(context)!.profileTab, // вместо 'Профиль'
+              ),
             ],
           ),
+
         ),
         body: TabBarView(
           children: [

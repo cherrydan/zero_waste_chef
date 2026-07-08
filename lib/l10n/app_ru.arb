@@ -1,0 +1,9 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Zero Waste Chef 🍏",
+  "fridgeTab": "Холодильник",
+  "favoritesTab": "Избранное",
+  "profileTab": "Профиль",
+  "addIngredientHint": "Например: Шпинат, Сыр...",
+  "emptyFridge": "В холодильнике пока пусто 🏜"
+}
