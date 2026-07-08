@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zero_waste_chef/services/auth_service.dart';
+import 'package:zero_waste_chef/screens/profile_screen.dart';
 import 'dart:convert'; 
 import 'recipe_screen.dart';
 import 'favorites_screen.dart';
@@ -608,45 +608,34 @@ class _FridgeScreenState extends State<FridgeScreen> {
   }
 
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 2,
+      length: 3, // <--- Меняем на 3!
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Zero Waste Chef 🍏'),
           backgroundColor: Colors.green.shade100,
-           // ==========================================
-          // ВСТАВЛЯЕМ СЮДА НАШУ КНОПКУ ОЧИСТКИ:
           actions: [
+            // Кнопку Logout мы отсюда скоро уберем, но пока пусть повисит
             IconButton(
               icon: const Icon(Icons.delete_sweep_outlined, color: Colors.red),
-              onPressed: _showConfirmDeleteDialog, // Вызываем диалог подтверждения
-            ), // Кнопка очистки
-            
-            
-            IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-            await AuthService().signOut();
-          },
-   ), // Кнопка logout
+              onPressed: _showConfirmDeleteDialog,
+            ),
           ],
-          // ==========================================
-            
-   
-
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.kitchen), text: 'Холодильник'),
               Tab(icon: Icon(Icons.favorite), text: 'Избранное'),
+              Tab(icon: Icon(Icons.person), text: 'Профиль'), // <--- Добавили вкладку!
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            _buildFridgeBody(), // Твоя верстка теперь живет здесь
-            const FavoritesScreen()
+            _buildFridgeBody(),
+            const FavoritesScreen(),
+            const Center(child: ProfileScreen()), 
           ],
         ),
       ),
