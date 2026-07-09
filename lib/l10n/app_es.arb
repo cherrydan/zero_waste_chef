@@ -5,5 +5,47 @@
   "favoritesTab": "Favoritos",
   "profileTab": "Perfil",
   "addIngredientHint": "Ejemplo: Espinacas, Queso...",
-  "emptyFridge": "La nevera está vacía 🏜"
+  "emptyFridge": "La nevera está vacía 🏜",
+  "quickSelectTitle": "Selección rápida: ⚡️",
+  "dietTypeTitle": "Tipo de dieta: 🥗",
+  "portionsTitle": "Porciones:",
+  "generateButton": "Generar Menú (IA)",
+  "profileScreenTitle": "Perfil de usuario",
+  "logoutButton": "Cerrar sesión",
+  "ecoStatus": "Estado ecológico",
+  "clearAllButton": "Limpiar todo",
+  "clearAllDialogTitle": "¿Limpiar todo? 🗑️",
+  "clearAllDialogContent": "¿Está seguro de que desea eliminar todos los productos de la nevera? Esta acción no se puede deshacer.",
+  "cancelButton": "Cancelar",
+  "deleteAllButton": "Eliminar todo",
+  "popTomatoes": "Tomates",
+  "popChicken": "Pollo",
+  "popFeta": "Queso Feta",
+  "popEggs": "Huevos",
+  "popMeat": "Carne",
+  "popSeafood": "Mariscos",
+  "popMilk": "Leche",
+
+    "expiredDaysText": "¡CADUCADO POR {days} DÍAS! ⚠️",
+  "@expiredDaysText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bestBefore": "Consumir antes de: {date}",
+  "@bestBefore": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "dietRegular": "Normal",
+  "dietMediterranean": "Mediterránea",
+  "dietVegetarian": "Vegetariana"
+
+
 }

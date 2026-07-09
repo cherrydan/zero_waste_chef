@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Zero Waste Chef🍏'**
+  /// **'Zero Waste Chef'**
   String get appTitle;
 
   /// No description provided for @fridgeTab.
@@ -135,6 +135,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your fridge is empty 🏜'**
   String get emptyFridge;
+
+  /// No description provided for @quickSelectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Select: ⚡️'**
+  String get quickSelectTitle;
+
+  /// No description provided for @dietTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet Type: 🥗'**
+  String get dietTypeTitle;
+
+  /// No description provided for @portionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Portions:'**
+  String get portionsTitle;
+
+  /// No description provided for @generateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Menu (AI)'**
+  String get generateButton;
+
+  /// No description provided for @profileScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User Profile'**
+  String get profileScreenTitle;
+
+  /// No description provided for @logoutButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Log out'**
+  String get logoutButton;
+
+  /// No description provided for @ecoStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Eco Status'**
+  String get ecoStatus;
+
+  /// No description provided for @clearAllDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all?'**
+  String get clearAllDialogTitle;
+
+  /// No description provided for @clearAllDialogContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete all products from the fridge? This action cannot be undone.'**
+  String get clearAllDialogContent;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButton;
+
+  /// No description provided for @deleteAllButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get deleteAllButton;
+
+  /// No description provided for @popTomatoes.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomatoes'**
+  String get popTomatoes;
+
+  /// No description provided for @popChicken.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicken'**
+  String get popChicken;
+
+  /// No description provided for @popFeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Feta'**
+  String get popFeta;
+
+  /// No description provided for @popEggs.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs'**
+  String get popEggs;
+
+  /// No description provided for @popMeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Meat'**
+  String get popMeat;
+
+  /// No description provided for @popSeafood.
+  ///
+  /// In en, this message translates to:
+  /// **'Seafood'**
+  String get popSeafood;
+
+  /// No description provided for @popMilk.
+  ///
+  /// In en, this message translates to:
+  /// **'Milk'**
+  String get popMilk;
+
+  /// No description provided for @expiredDaysText.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPIRED BY {days} DAYS! ⚠️'**
+  String expiredDaysText(int days);
+
+  /// No description provided for @bestBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Best before: {date}'**
+  String bestBefore(String date);
+
+  /// No description provided for @dietRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get dietRegular;
+
+  /// No description provided for @dietMediterranean.
+  ///
+  /// In en, this message translates to:
+  /// **'Mediterranean'**
+  String get dietMediterranean;
+
+  /// No description provided for @dietVegetarian.
+  ///
+  /// In en, this message translates to:
+  /// **'Vegetarian'**
+  String get dietVegetarian;
 }
 
 class _AppLocalizationsDelegate

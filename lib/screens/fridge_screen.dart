@@ -13,33 +13,34 @@ import '../l10n/app_localizations.dart';
 
 
 class Ingredient {
-  final String name;
+  final String name; // Имя-заглушка (или то, что ввели руками)
+  final String? id;  // Уникальный ID для популярных продуктов
   bool isUrgent;
-  final DateTime? expiryDate; // Наше новое поле!
+  final DateTime? expiryDate;
 
   Ingredient({
     required this.name,
+    this.id, // <-- Наше новое поле!
     this.isUrgent = false,
     this.expiryDate,
   });
 
-  // Превращаем в JSON (для сохранения в SharedPreferences и Firestore)
+  // Превращаем в JSON (добавляем id)
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'id': id, // <-- Сохраняем ID
       'isUrgent': isUrgent,
-      // В JSON нельзя сохранить объект DateTime напрямую, 
-      // поэтому мы превращаем его в строку формата ISO-8601 (например, "2026-07-02")
-      'expiryDate': expiryDate?.toIso8601String(), 
+      'expiryDate': expiryDate?.toIso8601String(),
     };
   }
 
-  // Создаем объект из JSON (для загрузки)
+  // Создаем из JSON (считываем id)
   factory Ingredient.fromJson(Map<String, dynamic> json) {
     return Ingredient(
       name: json['name'] as String,
+      id: json['id'] as String?, // <-- Считываем ID
       isUrgent: json['isUrgent'] as bool,
-      // Превращаем строку ISO обратно в объект DateTime (если она есть)
       expiryDate: json['expiryDate'] != null 
           ? DateTime.parse(json['expiryDate'] as String) 
           : null,
@@ -50,11 +51,12 @@ class Ingredient {
 
 // Популярные продукты в виде иконок для быстрого добавления
 class PopularProduct {
-  final String name;
+  final String id; // <--- Теперь используем уникальный ID вместо имени
   final String emoji;
 
-  PopularProduct({required this.name, required this.emoji});
+  PopularProduct({required this.id, required this.emoji});
 }
+
 
 
 
@@ -85,19 +87,21 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   int _portions = 2; // Количество порций по умолчанию
 
-  final List<String> _diets = ['Обычная', 'Средиземноморская', 'Вегетарианская'];
-  String _selectedDiet = 'Обычная'; // Переменная для хранения выбранной диеты
+  // Заменили русские строки на универсальные ID:
+  final List<String> _dietIds = ['regular', 'mediterranean', 'vegetarian'];
+  String _selectedDiet = 'regular'; // По умолчанию ID 'regular'
+
 
   DateTime? _selectedExpiryDate; // Временная переменная для нового продукта
 
   final List<PopularProduct> _popularProducts = [
-    PopularProduct(name: 'Помидоры', emoji: '🍅'),
-    PopularProduct(name: 'Куриное филе', emoji: '🍗'),
-    PopularProduct(name: 'Сыр Фета', emoji: '🧀'),
-    PopularProduct(name: 'Яйца', emoji: '🥚'),
-    PopularProduct(name: 'Мясо', emoji: '🥩'),
-    PopularProduct(name: 'Морепродукты', emoji: '🍤'),
-    PopularProduct(name: 'Молоко', emoji: '🥛'),
+    PopularProduct(id: 'tomatoes', emoji: '🍅'),
+    PopularProduct(id: 'chicken', emoji: '🍗'),
+    PopularProduct(id: 'feta', emoji: '🧀'),
+    PopularProduct(id: 'eggs', emoji: '🥚'),
+    PopularProduct(id: 'meat', emoji: '🥩'),
+    PopularProduct(id: 'seafood', emoji: '🍤'),
+    PopularProduct(id: 'milk', emoji: '🥛'),
   ];
 
   // Функция сохранения холодильника в память телефона и Firestore
@@ -117,14 +121,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
         'ingredients': listJson,
       });
     }
-  }
-
-    String _formatDate(DateTime? date) {
-    if (date == null) return '';
-    // Дописываем ноль слева, если число меньше 10 (например, "2" станет "02")
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day.$month';
   }
 
 
@@ -215,6 +211,17 @@ class _FridgeScreenState extends State<FridgeScreen> {
   }
 
 
+    String _getDietName(String id) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (id) {
+      case 'regular': return l10n.dietRegular;
+      case 'mediterranean': return l10n.dietMediterranean;
+      case 'vegetarian': return l10n.dietVegetarian;
+      default: return '';
+    }
+  }
+
+
 
 
   // кастомизация промпта
@@ -229,13 +236,6 @@ class _FridgeScreenState extends State<FridgeScreen> {
       if (_portions > 1) {
         _portions--;
       }
-    });
-  }
-
-  // выбор диеты
-    void _selectDiet(String diet) {
-    setState(() {
-      _selectedDiet = diet; // Сохраняем выбранную диету
     });
   }
 
@@ -261,31 +261,52 @@ class _FridgeScreenState extends State<FridgeScreen> {
     _saveFridgeData(); // Сохраняем в память и Firestore
   }
 
-    String _getExpiredDaysText(DateTime? expiryDate) {
+    String _getPopularProductName(String id) {
+
+    final l10n = AppLocalizations.of(context)!;  
+
+    switch (id) {
+      case 'tomatoes': return l10n.popTomatoes;
+      case 'chicken': return l10n.popChicken;
+      case 'feta': return l10n.popFeta;
+      case 'eggs': return l10n.popEggs;
+      case 'meat': return l10n.popMeat;
+      case 'seafood': return l10n.popSeafood;
+      case 'milk': return l10n.popMilk;
+      default: return '';
+    }
+  }
+
+
+      String _getExpiredDaysText(DateTime? expiryDate) {
     if (expiryDate == null) return '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final expiry = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
     
-    // Считаем разницу между "сегодня" и "днем истечения срока"
     final diff = today.difference(expiry).inDays;
-    return 'ПРОСРОЧЕНО НА $diff ДН.! ⚠️';
+    
+    // Получаем l10n и вызываем метод как функцию, передавая туда число дней!
+    final l10n = AppLocalizations.of(context)!;
+    return l10n.expiredDaysText(diff); // <-- Передали параметр!
   }
+
 
 
 
   // Добавляем новый ингридиент через меню популярных продуктов
-    void _addPopularProduct(PopularProduct product) {
+      void _addPopularProduct(PopularProduct product) {
     setState(() {
       _ingredients.add(Ingredient(
-        name: product.name,
-        expiryDate: _selectedExpiryDate, // Передаем временно выбранную дату!
-        // Если дата горит — умная срочность сама покрасит карточку!
+        name: product.id, // В имя временно кладем ID как заглушку
+        id: product.id,   // <-- Передаем ID!
+        expiryDate: _selectedExpiryDate,
       ));
-      _selectedExpiryDate = null; // Сбрасываем дату для следующего продукта
+      _selectedExpiryDate = null;
     });
-    _saveFridgeData(); // Синхронизируем с облаком
+    _saveFridgeData();
   }
+
 
 
 
@@ -317,17 +338,19 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   // вызов диалогового окна для подтверждения очистки холодильника
     void _showConfirmDeleteDialog() {
+    final l10n = AppLocalizations.of(context)!;  
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Очистить всё? 🗑️'),
-          content: const Text('Вы уверены, что хотите удалить все продукты из холодильника? Это действие нельзя отменить.'),
+          title: Text(l10n.clearAllDialogTitle),
+          content: Text(l10n.clearAllDialogContent),
           actions: [
             // Кнопка "Отмена"
             TextButton(
               onPressed: () => Navigator.pop(context), // Просто закрываем окно
-              child: const Text('Отмена'),
+              child: Text(l10n.cancelButton),
             ),
             // Кнопка "Удалить"
             TextButton(
@@ -335,8 +358,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
                 _clearAll(); // Вызываем твою функцию очистки!
                 Navigator.pop(context); // Закрываем диалоговое окно
               },
-              child: const Text(
-                'Удалить всё',
+              child: Text(
+                l10n.deleteAllButton,
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
               ),
             ),
@@ -362,6 +385,11 @@ class _FridgeScreenState extends State<FridgeScreen> {
   }
 
   Widget _buildFridgeBody() {
+
+    final l10n = AppLocalizations.of(context)!;
+   
+
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -373,7 +401,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
                 child: TextField(
                 controller: _controller,
                 decoration: InputDecoration(
-                hintText: 'Например: Шпинат, Сыр...',
+                hintText: l10n.addIngredientHint,
                 border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 ),
@@ -401,10 +429,10 @@ class _FridgeScreenState extends State<FridgeScreen> {
           const SizedBox(height: 16),
 
           // 2. Блок "Быстрый выбор" (Wrap)
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Быстрый выбор: ⚡️',
+              l10n.quickSelectTitle,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
             ),
           ),
@@ -416,7 +444,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
               for (int i = 0; i < _popularProducts.length; i++)
                 ActionChip(
                   avatar: Text(_popularProducts[i].emoji),
-                  label: Text(_popularProducts[i].name),
+                  label: Text(_getPopularProductName(_popularProducts[i].id)),
                   onPressed: () => _addPopularProduct(_popularProducts[i]),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
@@ -425,30 +453,33 @@ class _FridgeScreenState extends State<FridgeScreen> {
           const SizedBox(height: 16),
 
           // 3. Блок "Тип диеты" (Horizontal Scroll)
-          const Align(
+          Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              'Тип диеты: 🥗',
+              l10n.dietTypeTitle,
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
             ),
           ),
           const SizedBox(height: 8),
-          SingleChildScrollView(
+                    SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                for (String diet in _diets)
+                for (String dietId in _dietIds) // Проходим по ID диет
                   Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: ChoiceChip(
-                      label: Text(diet),
-                      selected: _selectedDiet == diet,
+                      // Переводим ID на лету для экрана:
+                      label: Text(_getDietName(dietId)), 
+                      selected: _selectedDiet == dietId, // Сравниваем ID
                       selectedColor: Colors.green.shade200,
                       backgroundColor: Colors.white,
                       onSelected: (bool selected) {
                         if (selected) {
-                          _selectDiet(diet);
+                          setState(() {
+                            _selectedDiet = dietId; // Сохраняем выбранный ID
+                          });
                         }
                       },
                     ),
@@ -456,12 +487,13 @@ class _FridgeScreenState extends State<FridgeScreen> {
               ],
             ),
           ),
+
           const SizedBox(height: 16),
 
           // 4. Список добавленных продуктов
           Expanded(
             child: _ingredients.isEmpty
-                ? const Center(child: Text('В холодильнике пока пусто 🏜'))
+                ?  Center(child: Text(l10n.emptyFridge))
                 : ListView.builder(
                     itemCount: _ingredients.length,
                     itemBuilder: (context, index) {
@@ -510,23 +542,27 @@ class _FridgeScreenState extends State<FridgeScreen> {
                             onPressed: isExpired ? null : () => _toggleUrgent(index), // Просроченные продукты нельзя "разжаловать" из срочных!
                           ),
                           title: Text(
-                            item.name,
+                                 item.id != null 
+                                ? _getPopularProductName(item.id!) // Переводим на лету!
+                                : item.name, // Показываем ручной ввод как есть
                             style: TextStyle(
                               fontWeight: (isExpired || isRedStatus) ? FontWeight.bold : FontWeight.normal,
                               color: contentColor,
                             ),
                           ),
-                          subtitle: item.expiryDate != null 
+
+                                                    subtitle: item.expiryDate != null 
                               ? Text(
                                   isExpired 
-                                      ? _getExpiredDaysText(item.expiryDate) // Показываем грозный текст просрочки
-                                      : 'Годен до: ${_formatDate(item.expiryDate)}',
+                                      ? _getExpiredDaysText(item.expiryDate)
+                                      : l10n.bestBefore(formatDate(item.expiryDate)), // 🟢 Динамический перевод с датой!
                                   style: TextStyle(
                                     color: isExpired ? Colors.red.shade900 : Colors.black54,
                                     fontWeight: isExpired ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 )
                               : null,
+
                           trailing: IconButton(
                             icon: const Icon(Icons.delete_outline, color: Colors.grey),
                             onPressed: () => _removeIngredient(index),
@@ -547,12 +583,12 @@ class _FridgeScreenState extends State<FridgeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(Icons.restaurant, color: Colors.green),
                     SizedBox(width: 8),
                     Text(
-                      'Порций:',
+                      l10n.portionsTitle,
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -579,6 +615,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
           const SizedBox(height: 16),
 
           // 5. Кнопка "Сгенерировать"
+      
           SizedBox(
             width: double.infinity,
             height: 50,
@@ -590,18 +627,21 @@ class _FridgeScreenState extends State<FridgeScreen> {
                     builder: (context) => RecipeScreen(
                       selectedIngredients: _ingredients,
                       portions: _portions,
-                      diet: _selectedDiet,
+                      // ПЕРЕДАЕМ ПЕРЕВЕДЕННЫЙ ТЕКСТ ДЛЯ OpenAI:
+                      diet: _getDietName(_selectedDiet), 
                       savedRecipe: null
                     ),
                   ),
                 );
               },
+              // ...
+
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Сгенерировать меню (AI)', style: TextStyle(fontSize: 16)),
+              child: Text(l10n.generateButton, style: TextStyle(fontSize: 16)),
             ),
           ),
         ],

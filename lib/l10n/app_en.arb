@@ -1,9 +1,50 @@
 {
   "@@locale": "en",
-  "appTitle": "Zero Waste Chef🍏",
+  "appTitle": "Zero Waste Chef",
   "fridgeTab": "Fridge",
   "favoritesTab": "Favorites",
   "profileTab": "Profile",
   "addIngredientHint": "Example: Spinach, Cheese...",
-  "emptyFridge": "Your fridge is empty 🏜"
+  "emptyFridge": "Your fridge is empty 🏜",
+  "quickSelectTitle": "Quick Select: ⚡️",
+  "dietTypeTitle": "Diet Type: 🥗",
+  "portionsTitle": "Portions:",
+  "generateButton": "Generate Menu (AI)",
+  "profileScreenTitle": "User Profile",
+  "logoutButton": "Log out",
+  "ecoStatus": "Eco Status",
+  "clearAllDialogTitle": "Clear all?",
+  "clearAllDialogContent": "Are you sure you want to delete all products from the fridge? This action cannot be undone.",
+  "cancelButton": "Cancel",
+  "deleteAllButton": "Delete all",
+    "popTomatoes": "Tomatoes",
+  "popChicken": "Chicken",
+  "popFeta": "Feta",
+  "popEggs": "Eggs",
+  "popMeat": "Meat",
+  "popSeafood": "Seafood",
+  "popMilk": "Milk",
+
+    "expiredDaysText": "EXPIRED BY {days} DAYS! ⚠️",
+  "@expiredDaysText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bestBefore": "Best before: {date}",
+  "@bestBefore": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "dietRegular": "Regular",
+  "dietMediterranean": "Mediterranean",
+  "dietVegetarian": "Vegetarian"
+
+
 }

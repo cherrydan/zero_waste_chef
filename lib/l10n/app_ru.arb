@@ -5,5 +5,48 @@
   "favoritesTab": "Избранное",
   "profileTab": "Профиль",
   "addIngredientHint": "Например: Шпинат, Сыр...",
-  "emptyFridge": "В холодильнике пока пусто 🏜"
+  "emptyFridge": "В холодильнике пока пусто 🏜",
+  "quickSelectTitle": "Быстрый выбор: ⚡️",
+  "dietTypeTitle": "Тип диеты: 🥗",
+  "portionsTitle": "Порций:",
+  "generateButton": "Сгенерировать меню (AI)",
+  "profileScreenTitle": "Профиль пользователя",
+  "logoutButton": "Выйти из аккаунта",
+  "ecoStatus": "Эко-статус",
+  "clearAllButton": "Очистить всё",
+  "clearAllDialogTitle": "Очистить всё? 🗑️",
+  "clearAllDialogContent": "Вы уверены, что хотите удалить все продукты из холодильника? Это действие нельзя отменить.",
+  "cancelButton": "Отмена",
+  "deleteAllButton": "Удалить всё",
+  "popTomatoes": "Помидоры",
+  "popChicken": "Курица",
+  "popFeta": "Сыр Фета",
+  "popEggs": "Яйца",
+  "popMeat": "Мясо",
+  "popSeafood": "Морепродукты",
+  "popMilk": "Молоко",
+
+    "expiredDaysText": "ПРОСРОЧЕНО НА {days} ДН.! ⚠️",
+  "@expiredDaysText": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "bestBefore": "Годен до: {date}",
+  "@bestBefore": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+
+  "dietRegular": "Обычная",
+  "dietMediterranean": "Средиземноморская",
+  "dietVegetarian": "Вегетарианская"
+
+
+
 }

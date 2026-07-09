@@ -1,15 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../l10n/app_localizations.dart'; // <-- 1. Наш импорт локализации
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Получаем текущего вошедшего пользователя из Firebase
     final user = FirebaseAuth.instance.currentUser;
     final AuthService authService = AuthService();
+    
+    // Создаем удобную переменную l10n, чтобы не писать длинный вызов каждый раз
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -25,8 +28,6 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 60,
                     backgroundColor: Colors.green.shade100,
-                    // Если у пользователя есть фото в Google-аккаунте — показываем его,
-                    // если нет — показываем дефолтную иконку человечка.
                     backgroundImage: user?.photoURL != null
                         ? NetworkImage(user!.photoURL!)
                         : null,
@@ -53,7 +54,7 @@ class ProfileScreen extends StatelessWidget {
 
             // 2. Имя пользователя
             Text(
-              user?.displayName ?? 'Шеф-повар',
+              user?.displayName ?? 'Chef',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -68,20 +69,24 @@ class ProfileScreen extends StatelessWidget {
             const Divider(),
             const SizedBox(height: 16),
 
-            // 4. Карточка статистики (просто для красоты и наполнения UX)
+            // 4. Карточка статистики
             Row(
               children: [
                 Expanded(
                   child: Card(
                     color: Colors.green.shade50,
-                    child: const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: Column(
                         children: [
-                          Icon(Icons.eco, color: Colors.green),
-                          SizedBox(height: 8),
-                          Text('Эко-статус', style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text('Zero Waste Pro', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                          const Icon(Icons.eco, color: Colors.green),
+                          const SizedBox(height: 8),
+                          // ЗАМЕНИЛИ "Эко-статус":
+                          Text(
+                            l10n.ecoStatus, 
+                            style: const TextStyle(fontWeight: FontWeight.bold)
+                          ),
+                          const Text('Zero Waste Pro', style: TextStyle(fontSize: 12, color: Colors.black54)),
                         ],
                       ),
                     ),
@@ -91,13 +96,17 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 40),
 
-            // 5. Кнопка Выхода (Logout)
+            // 5. Кнопка Выхода
             SizedBox(
               width: double.infinity,
               height: 50,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.logout, color: Colors.red),
-                label: const Text('Выйти из аккаунта', style: TextStyle(color: Colors.red)),
+                // ЗАМЕНИЛИ "Выйти из аккаунта":
+                label: Text(
+                  l10n.logoutButton, 
+                  style: const TextStyle(color: Colors.red)
+                ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.red),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
