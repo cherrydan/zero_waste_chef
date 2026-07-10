@@ -174,14 +174,40 @@ class _RecipeScreenState extends State<RecipeScreen> {
     }
   }
 
+      // Определяем, запрещен ли ингредиент текущей диетой
+  bool _isIngredientForbiddenByDiet(Ingredient ingredient, String dietType) {
+    if (dietType == 'Вегетарианская' || dietType == 'Vegetarian' || dietType == 'Vegetariana') {
+      // Это вегетарианская диета. Ингредиенты, которые надо исключить:
+      final forbiddenIds = ['chicken', 'meat', 'seafood']; // Используем ID для универсальности!
+      // Проверяем, если ингредиент из запрещенных ID
+      if (ingredient.id != null && forbiddenIds.contains(ingredient.id)) {
+        return true;
+      }
+      // Если это не популярный продукт, но его имя явно указывает на запрещенный продукт
+      final forbiddenNames = ['курица', 'мясо', 'рыба', 'морепродукты', 'chicken', 'meat', 'fish', 'seafood', 'pollo', 'carne', 'pescado', 'mariscos'];
+      final lowerCaseName = ingredient.name.toLowerCase();
+      if (forbiddenNames.any((name) => lowerCaseName.contains(name))) {
+        return true;
+      }
+    }
+    // Добавь сюда логику для других диет, если они будут (например, без глютена)
+    return false;
+  }
+
+
 
     Future<void> _loadRecipeFromAI() async {
     // Вся работа заворачивается в блок try!
     try {
       final l10n = AppLocalizations.of(context)!;
 
+      // 🟢 ФИЛЬТРУЕМ ЗАПРЕЩЕННЫЕ ИНГРЕДИЕНТЫ ДО СОСТАВЛЕНИЯ ПРОМПТА!
+      final List<Ingredient> filteredIngredients = widget.selectedIngredients
+          .where((ingredient) => !_isIngredientForbiddenByDiet(ingredient, widget.diet))
+          .toList();
+
       // 1. Форматируем список продуктов для ИИ на текущем языке системы
-      final ingredientsPromptList = widget.selectedIngredients.map((e) {
+      final ingredientsPromptList = filteredIngredients.map((e) {
         final bool isExpired = isProductExpired(e.expiryDate);
         final bool isExpiringSoon = e.isUrgent || isProductExpiringSoon(e.expiryDate);
 
@@ -274,7 +300,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
     return Scaffold(
         appBar: AppBar(
-        title: Text('${l10n.recipeTitle}🧑‍🍳'),
+        title: Text(_recipe?.title ?? l10n.recipeTitle),
         backgroundColor: Colors.green.shade100,
         actions: [
           IconButton(
