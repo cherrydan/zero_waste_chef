@@ -45,7 +45,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get logoutButton => 'Выйти из аккаунта';
 
   @override
-  String get ecoStatus => 'Эко-статус';
+  String get clearAllButton => 'Очистить всё';
 
   @override
   String get clearAllDialogTitle => 'Очистить всё? 🗑️';
@@ -59,6 +59,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get deleteAllButton => 'Удалить всё';
+
+  @override
+  String get ecoStatus => 'Эко-статус';
 
   @override
   String get popTomatoes => 'Помидоры';
@@ -82,6 +85,33 @@ class AppLocalizationsRu extends AppLocalizations {
   String get popMilk => 'Молоко';
 
   @override
+  String get dietRegular => 'Обычная';
+
+  @override
+  String get dietMediterranean => 'Средиземноморская';
+
+  @override
+  String get dietVegetarian => 'Вегетарианская';
+
+  @override
+  String get recipeTitle => 'Рецепт';
+
+  @override
+  String get shoppingList => 'Список покупок';
+
+  @override
+  String get steps => 'Шаги приготовления';
+
+  @override
+  String get shareRecipe => 'Поделиться';
+
+  @override
+  String get aiThinking => 'Шеф-повар думает...';
+
+  @override
+  String get copySuccess => 'Скопировано!';
+
+  @override
   String expiredDaysText(int days) {
     return 'ПРОСРОЧЕНО НА $days ДН.! ⚠️';
   }
@@ -92,11 +122,15 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get dietRegular => 'Обычная';
+  String get ingredientExpiredTag =>
+      ' (ПОМЕТКА: ПРОСРОЧЕН! Использовать С ОСТОРОЖНОСТЬЮ, только после глубокой ТЕРМИЧЕСКОЙ ОБРАБОТКИ. Для мяса/рыбы - ЗАПРЕТ!)';
 
   @override
-  String get dietMediterranean => 'Средиземноморская';
+  String get ingredientUrgentTag =>
+      ' (ПОМЕТКА: СРОЧНО! Истекает срок годности, использовать ОБЯЗАТЕЛЬНО!)';
 
   @override
-  String get dietVegetarian => 'Вегетарианская';
+  String aiRecipePrompt(int portions, String ingredientsList, String dietType) {
+    return 'Приготовь блюдо строго на $portions порции(й) из следующих продуктов: $ingredientsList. ЖЕСТКИЕ ПРАВИЛА БЕЗОПАСНОСТИ: 1. ПРОДУКТЫ С ПОМЕТКОЙ (СРОЧНО!): ДОЛЖНЫ быть использованы в рецепте в первую очередь, чтобы предотвратить порчу. 2. ПРОДУКТЫ С ПОМЕТКОЙ (ПРОСРОЧЕН!): Если это мясо, птица, рыба, морепродукты или грибы — КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО использовать их в рецепте. Предложи пользователю безопасно утилизировать их. Если это молочные продукты, овощи, фрукты, хлеб и т.п. — использовать можно ТОЛЬКО при условии ГЛУБОКОЙ ТЕРМИЧЕСКОЙ ОБРАБОТКИ (варка, тушение, выпечка при высокой температуре). Не предлагать салаты или блюда без термической обработки! Нельзя предлагать просроченные продукты без термической обработки! 3. Добавь не больше 2 дешевых ингредиентов, если это необходимо. 4. Рецепт должен строго соответствовать диете: $dietType. Ответ верни СТРОГО в формате JSON с ключами: \'recipe_name\' (строка), \'shopping_list\' (массив строк), \'steps\' (массив строк).';
+  }
 }

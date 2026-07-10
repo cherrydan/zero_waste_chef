@@ -172,11 +172,11 @@ abstract class AppLocalizations {
   /// **'Log out'**
   String get logoutButton;
 
-  /// No description provided for @ecoStatus.
+  /// No description provided for @clearAllButton.
   ///
   /// In en, this message translates to:
-  /// **'Eco Status'**
-  String get ecoStatus;
+  /// **'Clear all'**
+  String get clearAllButton;
 
   /// No description provided for @clearAllDialogTitle.
   ///
@@ -201,6 +201,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete all'**
   String get deleteAllButton;
+
+  /// No description provided for @ecoStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Eco Status'**
+  String get ecoStatus;
 
   /// No description provided for @popTomatoes.
   ///
@@ -244,18 +250,6 @@ abstract class AppLocalizations {
   /// **'Milk'**
   String get popMilk;
 
-  /// No description provided for @expiredDaysText.
-  ///
-  /// In en, this message translates to:
-  /// **'EXPIRED BY {days} DAYS! ⚠️'**
-  String expiredDaysText(int days);
-
-  /// No description provided for @bestBefore.
-  ///
-  /// In en, this message translates to:
-  /// **'Best before: {date}'**
-  String bestBefore(String date);
-
   /// No description provided for @dietRegular.
   ///
   /// In en, this message translates to:
@@ -273,6 +267,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Vegetarian'**
   String get dietVegetarian;
+
+  /// No description provided for @recipeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get recipeTitle;
+
+  /// No description provided for @shoppingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping List'**
+  String get shoppingList;
+
+  /// No description provided for @steps.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get steps;
+
+  /// No description provided for @shareRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Recipe'**
+  String get shareRecipe;
+
+  /// No description provided for @aiThinking.
+  ///
+  /// In en, this message translates to:
+  /// **'Chef is thinking...'**
+  String get aiThinking;
+
+  /// No description provided for @copySuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard!'**
+  String get copySuccess;
+
+  /// No description provided for @expiredDaysText.
+  ///
+  /// In en, this message translates to:
+  /// **'EXPIRED BY {days} DAYS! ⚠️'**
+  String expiredDaysText(int days);
+
+  /// No description provided for @bestBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Best before: {date}'**
+  String bestBefore(String date);
+
+  /// No description provided for @ingredientExpiredTag.
+  ///
+  /// In en, this message translates to:
+  /// **' (NOTE: EXPIRED! Use WITH CAUTION, only after deep THERMAL PROCESSING. For meat/fish - FORBIDDEN!)'**
+  String get ingredientExpiredTag;
+
+  /// No description provided for @ingredientUrgentTag.
+  ///
+  /// In en, this message translates to:
+  /// **' (NOTE: URGENT! Expiring soon, MUST be used!)'**
+  String get ingredientUrgentTag;
+
+  /// OpenAI prompt with safe rules
+  ///
+  /// In en, this message translates to:
+  /// **'Prepare a dish strictly for {portions} servings from the following ingredients: {ingredientsList}. STRICT SAFETY RULES: 1. PRODUCTS MARKED AS (URGENT!): MUST be used in the recipe first to prevent spoilage. 2. PRODUCTS MARKED AS (EXPIRED!): If it\'s meat, poultry, fish, seafood or mushrooms - STRICTLY FORBIDDEN to use in the recipe. Suggest the user safely dispose of them. If it\'s dairy products, vegetables, fruits, bread, etc. - can only be used under strict THERMAL PROCESSING (boiling, stewing, baking at high temperature). Do not suggest salads or dishes without thermal processing! Do not offer expired products without thermal processing! 3. Add no more than 2 cheap ingredients if necessary. 4. The recipe must strictly adhere to the diet: {dietType}. Return the answer STRICTLY in JSON format with keys: \'recipe_name\' (string), \'shopping_list\' (array of strings), \'steps\' (array of strings).'**
+  String aiRecipePrompt(int portions, String ingredientsList, String dietType);
 }
 
 class _AppLocalizationsDelegate

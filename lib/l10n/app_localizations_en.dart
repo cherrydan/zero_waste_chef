@@ -45,7 +45,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutButton => 'Log out';
 
   @override
-  String get ecoStatus => 'Eco Status';
+  String get clearAllButton => 'Clear all';
 
   @override
   String get clearAllDialogTitle => 'Clear all?';
@@ -59,6 +59,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAllButton => 'Delete all';
+
+  @override
+  String get ecoStatus => 'Eco Status';
 
   @override
   String get popTomatoes => 'Tomatoes';
@@ -82,6 +85,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get popMilk => 'Milk';
 
   @override
+  String get dietRegular => 'Regular';
+
+  @override
+  String get dietMediterranean => 'Mediterranean';
+
+  @override
+  String get dietVegetarian => 'Vegetarian';
+
+  @override
+  String get recipeTitle => 'Recipe';
+
+  @override
+  String get shoppingList => 'Shopping List';
+
+  @override
+  String get steps => 'Steps';
+
+  @override
+  String get shareRecipe => 'Share Recipe';
+
+  @override
+  String get aiThinking => 'Chef is thinking...';
+
+  @override
+  String get copySuccess => 'Copied to clipboard!';
+
+  @override
   String expiredDaysText(int days) {
     return 'EXPIRED BY $days DAYS! ⚠️';
   }
@@ -92,11 +122,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get dietRegular => 'Regular';
+  String get ingredientExpiredTag =>
+      ' (NOTE: EXPIRED! Use WITH CAUTION, only after deep THERMAL PROCESSING. For meat/fish - FORBIDDEN!)';
 
   @override
-  String get dietMediterranean => 'Mediterranean';
+  String get ingredientUrgentTag =>
+      ' (NOTE: URGENT! Expiring soon, MUST be used!)';
 
   @override
-  String get dietVegetarian => 'Vegetarian';
+  String aiRecipePrompt(int portions, String ingredientsList, String dietType) {
+    return 'Prepare a dish strictly for $portions servings from the following ingredients: $ingredientsList. STRICT SAFETY RULES: 1. PRODUCTS MARKED AS (URGENT!): MUST be used in the recipe first to prevent spoilage. 2. PRODUCTS MARKED AS (EXPIRED!): If it\'s meat, poultry, fish, seafood or mushrooms - STRICTLY FORBIDDEN to use in the recipe. Suggest the user safely dispose of them. If it\'s dairy products, vegetables, fruits, bread, etc. - can only be used under strict THERMAL PROCESSING (boiling, stewing, baking at high temperature). Do not suggest salads or dishes without thermal processing! Do not offer expired products without thermal processing! 3. Add no more than 2 cheap ingredients if necessary. 4. The recipe must strictly adhere to the diet: $dietType. Return the answer STRICTLY in JSON format with keys: \'recipe_name\' (string), \'shopping_list\' (array of strings), \'steps\' (array of strings).';
+  }
 }

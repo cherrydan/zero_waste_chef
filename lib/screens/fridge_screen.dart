@@ -261,24 +261,9 @@ class _FridgeScreenState extends State<FridgeScreen> {
     _saveFridgeData(); // Сохраняем в память и Firestore
   }
 
-    String _getPopularProductName(String id) {
+    
 
-    final l10n = AppLocalizations.of(context)!;  
-
-    switch (id) {
-      case 'tomatoes': return l10n.popTomatoes;
-      case 'chicken': return l10n.popChicken;
-      case 'feta': return l10n.popFeta;
-      case 'eggs': return l10n.popEggs;
-      case 'meat': return l10n.popMeat;
-      case 'seafood': return l10n.popSeafood;
-      case 'milk': return l10n.popMilk;
-      default: return '';
-    }
-  }
-
-
-      String _getExpiredDaysText(DateTime? expiryDate) {
+    String _getExpiredDaysText(DateTime? expiryDate) {
     if (expiryDate == null) return '';
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -294,19 +279,25 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
 
 
-  // Добавляем новый ингридиент через меню популярных продуктов
-      void _addPopularProduct(PopularProduct product) {
+    // Добавляем новый ингредиент через меню популярных продуктов
+  void _addPopularProduct(PopularProduct product) {
+    // 1. Получаем доступ к текущему переводчику
+    final l10n = AppLocalizations.of(context)!;
+    
+    // 2. Получаем правильное имя продукта на текущем языке системы
+    final translatedName = getPopularProductName(product.id, l10n);
+
     setState(() {
       _ingredients.add(Ingredient(
-        name: product.id, // В имя временно кладем ID как заглушку
-        id: product.id,   // <-- Передаем ID!
+        name: translatedName, // Записываем красивый перевод как снимок
+        id: product.id,       // Сохраняем ID для динамической смены языка на лету
         expiryDate: _selectedExpiryDate,
       ));
-      _selectedExpiryDate = null;
+      _selectedExpiryDate = null; // Сбрасываем выбранную дату
     });
-    _saveFridgeData();
+    
+    _saveFridgeData(); // Синхронизируем с Firestore и локальной памятью
   }
-
 
 
 
@@ -444,7 +435,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
               for (int i = 0; i < _popularProducts.length; i++)
                 ActionChip(
                   avatar: Text(_popularProducts[i].emoji),
-                  label: Text(_getPopularProductName(_popularProducts[i].id)),
+                  label: Text(getPopularProductName(_popularProducts[i].id, l10n)),
                   onPressed: () => _addPopularProduct(_popularProducts[i]),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
@@ -543,7 +534,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
                           ),
                           title: Text(
                                  item.id != null 
-                                ? _getPopularProductName(item.id!) // Переводим на лету!
+                                ? getPopularProductName(item.id!, l10n) // Переводим на лету!
                                 : item.name, // Показываем ручной ввод как есть
                             style: TextStyle(
                               fontWeight: (isExpired || isRedStatus) ? FontWeight.bold : FontWeight.normal,
@@ -551,7 +542,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
                             ),
                           ),
 
-                                                    subtitle: item.expiryDate != null 
+                              subtitle: item.expiryDate != null 
                               ? Text(
                                   isExpired 
                                       ? _getExpiredDaysText(item.expiryDate)

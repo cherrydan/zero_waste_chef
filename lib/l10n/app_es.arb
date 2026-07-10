@@ -12,12 +12,12 @@
   "generateButton": "Generar Menú (IA)",
   "profileScreenTitle": "Perfil de usuario",
   "logoutButton": "Cerrar sesión",
-  "ecoStatus": "Estado ecológico",
   "clearAllButton": "Limpiar todo",
   "clearAllDialogTitle": "¿Limpiar todo? 🗑️",
   "clearAllDialogContent": "¿Está seguro de que desea eliminar todos los productos de la nevera? Esta acción no se puede deshacer.",
   "cancelButton": "Cancelar",
   "deleteAllButton": "Eliminar todo",
+  "ecoStatus": "Estado ecológico",
   "popTomatoes": "Tomates",
   "popChicken": "Pollo",
   "popFeta": "Queso Feta",
@@ -25,8 +25,16 @@
   "popMeat": "Carne",
   "popSeafood": "Mariscos",
   "popMilk": "Leche",
-
-    "expiredDaysText": "¡CADUCADO POR {days} DÍAS! ⚠️",
+  "dietRegular": "Normal",
+  "dietMediterranean": "Mediterránea",
+  "dietVegetarian": "Vegetariana",
+  "recipeTitle": "Receta",
+  "shoppingList": "Lista de la compra",
+  "steps": "Pasos",
+  "shareRecipe": "Compartir",
+  "aiThinking": "El chef está pensando...",
+  "copySuccess": "¡Copiado al portapapeles!",
+  "expiredDaysText": "¡CADUCADO POR {days} DÍAS! ⚠️",
   "@expiredDaysText": {
     "placeholders": {
       "days": {
@@ -42,10 +50,21 @@
       }
     }
   },
-
-  "dietRegular": "Normal",
-  "dietMediterranean": "Mediterránea",
-  "dietVegetarian": "Vegetariana"
-
-
+  "ingredientExpiredTag": " (NOTA: ¡CADUCADO! Usar CON PRECAUCIÓN, solo después de un PROCESAMIENTO TÉRMICO profundo. ¡Para carne/pescado - PROHIBIDO!)",
+  "ingredientUrgentTag": " (NOTA: ¡URGENTE! Caduca pronto, ¡DEBE usarse!)",
+  "aiRecipePrompt": "Prepara un plato estrictamente para {portions} raciones con los siguientes ingredientes: {ingredientsList}. REGLAS ESTRICTAS DE SEGURIDAD: 1. PRODUCTOS MARCADOS COMO (¡URGENTE!): DEBEN utilizarse primero en la receta para evitar su deterioro. 2. PRODUCTOS MARCADOS COMO (¡CADUCADO!): Si es carne, aves, pescado, marisco o champiñones - ESTRICTAMENTE PROHIBIDO utilizarlos en la receta. Sugiera al usuario que los deseche de forma segura. Si son productos lácteos, verduras, frutas, pan, etc. - solo se pueden utilizar bajo un ESTRICTO PROCESAMIENTO TÉRMICO (hervir, estofar, hornear a alta temperatura). ¡No sugiera ensaladas o platos sin procesamiento térmico! ¡No ofrezca productos caducados sin procesamiento térmico! 3. Añada no más de 2 ingredientes baratos si es necesario. 4. La receta debe ajustarse estrictamente a la dieta: {dietType}. Devuelve la respuesta ESTRICTAMENTE en formato JSON con las claves: 'recipe_name' (string), 'shopping_list' (matriz de cadenas), 'steps' (matriz de cadenas).",
+  "@aiRecipePrompt": {
+    "description": "OpenAI prompt with safe rules",
+    "placeholders": {
+      "portions": {
+        "type": "int"
+      },
+      "ingredientsList": {
+        "type": "String"
+      },
+      "dietType": {
+        "type": "String"
+      }
+    }
+  }
 }

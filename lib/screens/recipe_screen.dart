@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zero_waste_chef/services/app_logger.dart'; // Наш логгер
 import 'package:zero_waste_chef/utils/date_helpers.dart'; 
+import '../l10n/app_localizations.dart';
 
 
 // Модель данных рецепта (из Шага 1)
@@ -148,135 +149,132 @@ class _RecipeScreenState extends State<RecipeScreen> {
   List<Recipe> _favoriteRecipes = []; // Список избранных рецептов
 
 
-  @override
+    @override
   void initState() {
     super.initState();
     
     if (widget.savedRecipe != null) {
       // 1. Если рецепт ПЕРЕДАН из избранного:
-      // Присваиваем его в нашу переменную _recipe
       _recipe = widget.savedRecipe;
       
-      // Инициализируем галочки (они будут пустыми при открытии)
       _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
       _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
       
-      // И не забываем проверить статус сердечка (оно должно быть красным)
-      _loadFavorites();
+      // Ждем отрисовки первого кадра перед загрузкой избранного (на всякий случай)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadFavorites();
+      });
     } else {
-      // 2. Если рецепта НЕТ (пришли из холодильника):
-      // запускаем генерацию через ИИ
-      _loadRecipeFromAI();
+      // 2. Если пришли из холодильника:
+      // Ждем отрисовки первого кадра, когда context будет на 100% готов, 
+      // и только потом запускаем генерацию ИИ!
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadRecipeFromAI();
+      });
     }
-   
   }
 
 
-  // ==========================================
-  // ВОТ ИДЕАЛЬНОЕ МЕСТО ДЛЯ ТВОЕЙ ФУНКЦИИ:
-  Future<void> _loadRecipeFromAI() async {
-    // Пишем логику отправки запроса сюда!
-    var headers = {
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer $myKey',
-  };
+    Future<void> _loadRecipeFromAI() async {
+    // Вся работа заворачивается в блок try!
+    try {
+      final l10n = AppLocalizations.of(context)!;
 
-      // Форматируем список продуктов для ИИ с учетом их срочности и просрочки
-    final ingredientsPromptList = widget.selectedIngredients.map((e) {
-      final bool isExpired = isProductExpired(e.expiryDate);
-      final bool isExpiringSoon = e.isUrgent || isProductExpiringSoon(e.expiryDate);
+      // 1. Форматируем список продуктов для ИИ на текущем языке системы
+      final ingredientsPromptList = widget.selectedIngredients.map((e) {
+        final bool isExpired = isProductExpired(e.expiryDate);
+        final bool isExpiringSoon = e.isUrgent || isProductExpiringSoon(e.expiryDate);
 
-      if (isExpired) {
-        // Продукт просрочен
-        return '${e.name} (ПОМЕТКА: ПРОСРОЧЕН! Использовать С ОСТОРОЖНОСТЬЮ, только после глубокой ТЕРМИЧЕСКОЙ ОБРАБОТКИ. Для мяса/рыбы - ЗАПРЕТ!)';
-      } else if (isExpiringSoon) {
-        // Продукт срочный
-        return '${e.name} (ПОМЕТКА: СРОЧНО! Истекает срок годности, использовать ОБЯЗАТЕЛЬНО!)';
-      } else {
-        // Обычный продукт
-        return e.name;
-      }
-    }).join(', ');
+        final String translatedName = e.id != null 
+            ? getPopularProductName(e.id!, l10n) 
+            : e.name;
 
+        if (isExpired) {
+          return '$translatedName${l10n.ingredientExpiredTag}';
+        } else if (isExpiringSoon) {
+          return '$translatedName${l10n.ingredientUrgentTag}';
+        } else {
+          return translatedName;
+        }
+      }).join(', ');
 
-
-        var aiPrompt = '''
-Приготовь блюдо строго на ${widget.portions} порции(й) из следующих продуктов: $ingredientsPromptList. 
-
-ЖЕСТКИЕ ПРАВИЛА БЕЗОПАСНОСТИ:
-1.  **ПРОДУКТЫ С ПОМЕТКОЙ (СРОЧНО!)**: ДОЛЖНЫ быть использованы в рецепте в первую очередь, чтобы предотвратить порчу.
-2.  **ПРОДУКТЫ С ПОМЕТКОЙ (ПРОСРОЧЕН!)**:
-    *   Если это мясо, птица, рыба, морепродукты или грибы — **КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО использовать их в рецепте**. Предложи пользователю безопасно утилизировать их.
-    *   Если это молочные продукты, овощи, фрукты, хлеб и т.п. — использовать можно **ТОЛЬКО при условии ГЛУБОКОЙ ТЕРМИЧЕСКОЙ ОБРАБОТКИ** (варка, тушение, выпечка при высокой температуре). Не предлагать салаты или блюда без термической обработки!
-    *   **Нельзя предлагать просроченные продукты без термической обработки!**
-
-3.  Добавь не больше 2 дешевых ингредиентов, если это необходимо. 
-4.  Рецепт должен строго соответствовать диете: ${widget.diet}.
-
-Ответ верни СТРОГО в формате JSON с ключами: 
-- 'recipe_name' (строка)
-- 'shopping_list' (массив строк)
-- 'steps' (массив строк).
-''';
-
-
-
-    var body = jsonEncode({
-    'model': 'gpt-4o-mini',
-    'response_format': {'type': 'json_object'},
-    'messages': [
-      {
-        'role': 'user',
-        'content': aiPrompt,
-      }
-    ]
-  });
-
-
-   
-    
-
-    var url = Uri.parse('https://api.openai.com/v1/chat/completions');
-    var response = await http.post(url, headers: headers, body: body);
-
-    if (response.statusCode == 200) {
-      var decodedData = jsonDecode(response.body);
-      String replyText = decodedData['choices'][0]['message']['content'];
-      var recipeJson = jsonDecode(replyText);
-            // Создаем объект рецепта из JSON
-      Recipe realRecipe = Recipe(
-        title: recipeJson['recipe_name'],
-        shoppingList: List<String>.from(recipeJson['shopping_list']),
-        steps: List<String>.from(recipeJson['steps']),
+      // 2. Формируем промпт на нужном языке
+      var aiPrompt = l10n.aiRecipePrompt(
+        widget.portions,       // 1. portions (int)
+        ingredientsPromptList, // 2. ingredientsList (String)
+        widget.diet,           // 3. dietType (String)
       );
 
-      // Обновляем состояние экрана!
-      setState(() {
-        _recipe = realRecipe;
-       
-        // Генерируем новые пустые списки галочек (false) под размер нового рецепта
-        _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
-        _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
-      });
-      _loadFavorites();
-    
-    } else { 
+      // 3. Отправляем запрос в OpenAI
+      final response = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $myKey', // Убедись, что твой ключ на месте!
+        },
+        body: jsonEncode({
+          'model': 'gpt-3.5-turbo', // или gpt-4o-mini
+          'messages': [
+            {
+              'role': 'user',
+              'content': aiPrompt,
+            }
+          ],
+          'temperature': 0.7,
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+        final String reply = data['choices'][0]['message']['content'] as String;
+        
+        final Map<String, dynamic> decodedRecipe = jsonDecode(reply);
+
+        setState(() {
+          _recipe = Recipe(
+            title: decodedRecipe['recipe_name'] as String,
+            shoppingList: List<String>.from(decodedRecipe['shopping_list']),
+            steps: List<String>.from(decodedRecipe['steps']),
+          );
+           // 🟢 ВОТ ЧТО МЫ ЗАБЫЛИ! Добавь эти две строчки сюда:
+          _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
+          _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
+        });
+      } else {
+        // Если сервер OpenAI вернул ошибку (например, статус 429 или 401)
+        throw Exception('Ошибка сервера OpenAI: код ${response.statusCode}');
+      }
+
+    } catch (e) {
+      // Блок catch поймает ЛЮБУЮ ошибку (сети, парсинга JSON, несовместимости типов)
+      logger.e("Критическая ошибка генерации рецепта: $e");
       
-      setState(() {
-        _errorMessage = 'Ой, что-то пошло не так. Не удалось получить рецепт от ИИ. 😢';
-      });
-
+      if (mounted) {
+        // Показываем красивое уведомление об ошибке
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Упс! Ошибка: $e. Пожалуйста, попробуйте еще раз!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        // Закрываем зависший экран и возвращаем пользователя назад в холодильник
+        Navigator.pop(context);
+      }
     }
-
   }
-  // ==========================================
+
 
 
   @override
   Widget build(BuildContext context) {
+
+  final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-            appBar: AppBar(
-        title: const Text('Ваш рецепт 🧑‍🍳'),
+        appBar: AppBar(
+        title: Text('${l10n.recipeTitle}🧑‍🍳'),
         backgroundColor: Colors.green.shade100,
         actions: [
           IconButton(
@@ -318,13 +316,13 @@ body: _errorMessage != null
 
       // ПРОВЕРЯЕМ: Если рецепт еще не загрузился, показываем крутилку
       : _recipe == null
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CircularProgressIndicator(color: Colors.green),
                   SizedBox(height: 16),
-                  Text('ИИ придумывает рецепт... 🧑‍🍳'),
+                  Text(l10n.aiThinking),
                 ],
               ),
             )
@@ -336,7 +334,7 @@ body: _errorMessage != null
                 children: [
                   // 1. Красивый заголовок рецепта
                   Text(
-                    _recipe!.title, // Обрати внимание: теперь везде используем _recipe! вместо _mockRecipe
+                    l10n.recipeTitle, // Обрати внимание: теперь везде используем _recipe! вместо _mockRecipe
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -350,8 +348,8 @@ body: _errorMessage != null
             const Divider(height: 32),
 
             // 3. Блок "Пошаговый рецепт"
-            const Text(
-              "Пошаговый план готовки: 📝",
+            Text(
+              l10n.steps,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),

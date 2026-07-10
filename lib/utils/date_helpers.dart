@@ -1,5 +1,21 @@
 // lib/utils/date_helpers.dart
 
+import '../l10n/app_localizations.dart'; // Не забудь импорт вверху!
+
+String getPopularProductName(String id, AppLocalizations l10n) {
+  switch (id) {
+    case 'tomatoes': return l10n.popTomatoes;
+    case 'chicken': return l10n.popChicken;
+    case 'feta': return l10n.popFeta;
+    case 'eggs': return l10n.popEggs;
+    case 'meat': return l10n.popMeat;
+    case 'seafood': return l10n.popSeafood;
+    case 'milk': return l10n.popMilk;
+    default: return '';
+  }
+}
+
+
 bool isProductExpired(DateTime? expiryDate) {
   if (expiryDate == null) return false;
   final now = DateTime.now();
