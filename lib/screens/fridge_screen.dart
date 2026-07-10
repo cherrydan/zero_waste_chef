@@ -247,17 +247,16 @@ class _FridgeScreenState extends State<FridgeScreen> {
     void _addIngredient() {
     if (_controller.text.trim().isEmpty) return;
 
-    setState(() {
-      // Добавляем ингредиент с нашей выбранной датой!
+        setState(() {
       _ingredients.add(Ingredient(
         name: _controller.text.trim(),
-        expiryDate: _selectedExpiryDate, // Передаем дату сюда!
+        id: null, // Четкий сигнал: «это ручной ввод, перевода нет»
+        expiryDate: _selectedExpiryDate,
       ));
-      
-      _controller.clear();
-      _selectedExpiryDate = null; // Очищаем временную дату для следующего продукта!
+      // ...
     });
     
+
     _saveFridgeData(); // Сохраняем в память и Firestore
   }
 
