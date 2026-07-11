@@ -148,6 +148,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
   Future<void> _loadFridgeData() async {
     final user = auth.currentUser;
 
+    final l10n = AppLocalizations.of(context)!;
+
     // Если юзер вошел - пробуем облако
     if (user != null) {
       try {
@@ -165,12 +167,12 @@ class _FridgeScreenState extends State<FridgeScreen> {
           _ingredients.addAll(cloudList.map((e) => Ingredient.fromJson(e as Map<String, dynamic>)));
         });
 
-          _showInfo('Данные успешно загружены из облака! ☁️', Colors.green);
+          _showInfo(l10n.cloudDataLoaded, Colors.green);
           return;
         }
       } catch (e) {
         if (!mounted) return;
-        _showInfo('Офлайн-режим: не удалось загрузить из облака. ☁️', Colors.red);
+        _showInfo(l10n.offlineModeCloudError, Colors.red);
       }
     }
 
@@ -192,7 +194,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
       });
 
       // Синее/оранжевое информационное сообщение
-      _showInfo('Данные холодильника загружены локально из SharedPreferences. 💾', Colors.blue);
+      _showInfo(l10n.localDataLoaded, Colors.blue);
     } catch (e) {
       await prefs.remove('fridge_list');
     }

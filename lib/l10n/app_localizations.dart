@@ -295,7 +295,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiThinking.
   ///
   /// In en, this message translates to:
-  /// **'Chef is thinking...'**
+  /// **'Chef is thinking...🧑‍🍳'**
   String get aiThinking;
 
   /// No description provided for @copySuccess.
@@ -333,6 +333,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Prepare a dish strictly for {portions} servings from the following ingredients: {ingredientsList}. STRICT SAFETY RULES: 1. PRODUCTS MARKED AS (URGENT!): MUST be used in the recipe first to prevent spoilage. 2. PRODUCTS MARKED AS (EXPIRED!): If it\'s meat, poultry, fish, seafood or mushrooms - STRICTLY FORBIDDEN to use in the recipe. Suggest the user safely dispose of them. If it\'s dairy products, vegetables, fruits, bread, etc. - can only be used under strict THERMAL PROCESSING (boiling, stewing, baking at high temperature). Do not suggest salads or dishes without thermal processing! Do not offer expired products without thermal processing! 3. Add no more than 2 cheap ingredients if necessary. 4. The recipe must strictly adhere to the diet: {dietType}. Return the answer STRICTLY in JSON format with keys: \'recipe_name\' (string), \'shopping_list\' (array of strings), \'steps\' (array of strings).'**
   String aiRecipePrompt(int portions, String ingredientsList, String dietType);
+
+  /// No description provided for @cloudDataLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Data successfully loaded from cloud! ☁️'**
+  String get cloudDataLoaded;
+
+  /// No description provided for @offlineModeCloudError.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline mode: Failed to load from cloud. Trying local memory...'**
+  String get offlineModeCloudError;
+
+  /// No description provided for @localDataLoaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Data loaded locally from SharedPreferences. 💾'**
+  String get localDataLoaded;
+
+  /// No description provided for @recipeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe copied to clipboard!'**
+  String get recipeCopied;
+
+  /// No description provided for @copyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to copy recipe. Please try again.'**
+  String get copyError;
+
+  /// No description provided for @aiErrorFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Oops! Something went wrong while generating the recipe. Please try again!'**
+  String get aiErrorFallback;
+
+  /// No description provided for @disclaimerText.
+  ///
+  /// In en, this message translates to:
+  /// **'Disclaimer: AI suggests recipe options based on your ingredients, but does not assess their actual freshness. Always check the smell, appearance, and expiration date of ingredients yourself before consumption. Developers are not responsible for possible foodborne illnesses.'**
+  String get disclaimerText;
 }
 
 class _AppLocalizationsDelegate

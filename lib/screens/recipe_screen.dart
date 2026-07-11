@@ -198,6 +198,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
     Future<void> _loadRecipeFromAI() async {
     // Вся работа заворачивается в блок try!
+    final l10n = AppLocalizations.of(context)!;
     try {
       final l10n = AppLocalizations.of(context)!;
 
@@ -281,7 +282,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
         // Показываем красивое уведомление об ошибке
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Упс! Ошибка: $e. Пожалуйста, попробуйте еще раз!'),
+            content: Text(l10n.aiErrorFallback),
             backgroundColor: Colors.red,
           ),
         );
@@ -400,10 +401,9 @@ body: _errorMessage != null
               children: [
                 Icon(Icons.gavel_rounded, color: Colors.grey.shade600, size: 20),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Дисклеймер: ИИ предлагает варианты рецептов на основе ваших продуктов, но не оценивает их реальную свежесть. Всегда проверяйте запах, вид и срок годности ингредиентов самостоятельно перед употреблением. Разработчики не несут ответственности за возможные пищевые расстройства.',
-                    style: TextStyle(
+                    l10n.disclaimerText,                    style: TextStyle(
                       fontSize: 11,
                       color: Colors.black54,
                       height: 1.4,

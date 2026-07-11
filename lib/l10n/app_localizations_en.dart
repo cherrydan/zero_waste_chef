@@ -106,7 +106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareRecipe => 'Share Recipe';
 
   @override
-  String get aiThinking => 'Chef is thinking...';
+  String get aiThinking => 'Chef is thinking...🧑‍🍳';
 
   @override
   String get copySuccess => 'Copied to clipboard!';
@@ -133,4 +133,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String aiRecipePrompt(int portions, String ingredientsList, String dietType) {
     return 'Prepare a dish strictly for $portions servings from the following ingredients: $ingredientsList. STRICT SAFETY RULES: 1. PRODUCTS MARKED AS (URGENT!): MUST be used in the recipe first to prevent spoilage. 2. PRODUCTS MARKED AS (EXPIRED!): If it\'s meat, poultry, fish, seafood or mushrooms - STRICTLY FORBIDDEN to use in the recipe. Suggest the user safely dispose of them. If it\'s dairy products, vegetables, fruits, bread, etc. - can only be used under strict THERMAL PROCESSING (boiling, stewing, baking at high temperature). Do not suggest salads or dishes without thermal processing! Do not offer expired products without thermal processing! 3. Add no more than 2 cheap ingredients if necessary. 4. The recipe must strictly adhere to the diet: $dietType. Return the answer STRICTLY in JSON format with keys: \'recipe_name\' (string), \'shopping_list\' (array of strings), \'steps\' (array of strings).';
   }
+
+  @override
+  String get cloudDataLoaded => 'Data successfully loaded from cloud! ☁️';
+
+  @override
+  String get offlineModeCloudError =>
+      'Offline mode: Failed to load from cloud. Trying local memory...';
+
+  @override
+  String get localDataLoaded =>
+      'Data loaded locally from SharedPreferences. 💾';
+
+  @override
+  String get recipeCopied => 'Recipe copied to clipboard!';
+
+  @override
+  String get copyError => 'Failed to copy recipe. Please try again.';
+
+  @override
+  String get aiErrorFallback =>
+      'Oops! Something went wrong while generating the recipe. Please try again!';
+
+  @override
+  String get disclaimerText =>
+      'Disclaimer: AI suggests recipe options based on your ingredients, but does not assess their actual freshness. Always check the smell, appearance, and expiration date of ingredients yourself before consumption. Developers are not responsible for possible foodborne illnesses.';
 }

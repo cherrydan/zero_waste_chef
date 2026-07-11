@@ -106,7 +106,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get shareRecipe => 'Compartir';
 
   @override
-  String get aiThinking => 'El chef está pensando...';
+  String get aiThinking => 'El chef está pensando...🧑‍🍳';
 
   @override
   String get copySuccess => '¡Copiado al portapapeles!';
@@ -133,4 +133,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String aiRecipePrompt(int portions, String ingredientsList, String dietType) {
     return 'Prepara un plato estrictamente para $portions raciones con los siguientes ingredientes: $ingredientsList. REGLAS ESTRICTAS DE SEGURIDAD: 1. PRODUCTOS MARCADOS COMO (¡URGENTE!): DEBEN utilizarse primero en la receta para evitar su deterioro. 2. PRODUCTOS MARCADOS COMO (¡CADUCADO!): Si es carne, aves, pescado, marisco o champiñones - ESTRICTAMENTE PROHIBIDO utilizarlos en la receta. Sugiera al usuario que los deseche de forma segura. Si son productos lácteos, verduras, frutas, pan, etc. - solo se pueden utilizar bajo un ESTRICTO PROCESAMIENTO TÉRMICO (hervir, estofar, hornear a alta temperatura). ¡No sugiera ensaladas o platos sin procesamiento térmico! ¡No ofrezca productos caducados sin procesamiento térmico! 3. Añada no más de 2 ingredientes baratos si es necesario. 4. La receta debe ajustarse a la dieta: $dietType. Devuelve la respuesta ESTRICTAMENTE en formato JSON con las claves: \'recipe_name\' (string), \'shopping_list\' (matriz de cadenas), \'steps\' (matriz de cadenas).';
   }
+
+  @override
+  String get cloudDataLoaded => '¡Datos cargados con éxito desde la nube! ☁️';
+
+  @override
+  String get offlineModeCloudError =>
+      'Modo sin conexión: Fallo al cargar desde la nube. Intentando memoria local...';
+
+  @override
+  String get localDataLoaded =>
+      'Datos cargados localmente desde la memoria. 💾';
+
+  @override
+  String get recipeCopied => '¡Receta copiada al portapapeles!';
+
+  @override
+  String get copyError =>
+      'No se pudo copiar la receta. Por favor, inténtelo de nuevo.';
+
+  @override
+  String get aiErrorFallback =>
+      '¡Ups! Algo salió mal al generar la receta. ¡Por favor, inténtelo de nuevo!';
+
+  @override
+  String get disclaimerText =>
+      'Descargo de responsabilidad: La IA sugiere opciones de recetas basadas en sus ingredientes, pero no evalúa su frescura real. Siempre verifique el olor, la apariencia y la fecha de caducidad de los ingredientes usted mismo antes de consumirlos. Los desarrolladores no son responsables de posibles enfermedades transmitidas por los alimentos.';
 }

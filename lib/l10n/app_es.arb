@@ -32,7 +32,7 @@
   "shoppingList": "Lista de la compra",
   "steps": "Pasos",
   "shareRecipe": "Compartir",
-  "aiThinking": "El chef está pensando...",
+  "aiThinking": "El chef está pensando...🧑‍🍳",
   "copySuccess": "¡Copiado al portapapeles!",
   "expiredDaysText": "¡CADUCADO POR {days} DÍAS! ⚠️",
   "@expiredDaysText": {
@@ -64,6 +64,13 @@
       "dietType": {
         "type": "String"
       }
-    }
-  }
+    },
 
+  "cloudDataLoaded": "¡Datos cargados con éxito desde la nube! ☁️",
+  "offlineModeCloudError": "Modo sin conexión: Fallo al cargar desde la nube. Intentando memoria local...",
+  "localDataLoaded": "Datos cargados localmente desde la memoria. 💾",
+  "recipeCopied": "¡Receta copiada al portapapeles!",
+  "copyError": "No se pudo copiar la receta. Por favor, inténtelo de nuevo.",
+  "aiErrorFallback": "¡Ups! Algo salió mal al generar la receta. ¡Por favor, inténtelo de nuevo!",
+  "disclaimerText": "Descargo de responsabilidad: La IA sugiere opciones de recetas basadas en sus ingredientes, pero no evalúa su frescura real. Siempre verifique el olor, la apariencia y la fecha de caducidad de los ingredientes usted mismo antes de consumirlos. Los desarrolladores no son responsables de posibles enfermedades transmitidas por los alimentos."
+  }

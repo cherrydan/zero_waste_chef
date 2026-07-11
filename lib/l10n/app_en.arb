@@ -32,7 +32,7 @@
   "shoppingList": "Shopping List",
   "steps": "Steps",
   "shareRecipe": "Share Recipe",
-  "aiThinking": "Chef is thinking...",
+  "aiThinking": "Chef is thinking...🧑‍🍳",
   "copySuccess": "Copied to clipboard!",
   "expiredDaysText": "EXPIRED BY {days} DAYS! ⚠️",
   "@expiredDaysText": {
@@ -66,5 +66,13 @@
         "type": "String"
       }
     }
-  }
+  },
+
+  "cloudDataLoaded": "Data successfully loaded from cloud! ☁️",
+  "offlineModeCloudError": "Offline mode: Failed to load from cloud. Trying local memory...",
+  "localDataLoaded": "Data loaded locally from SharedPreferences. 💾",
+  "recipeCopied": "Recipe copied to clipboard!",
+  "copyError": "Failed to copy recipe. Please try again.",
+  "aiErrorFallback": "Oops! Something went wrong while generating the recipe. Please try again!",
+  "disclaimerText": "Disclaimer: AI suggests recipe options based on your ingredients, but does not assess their actual freshness. Always check the smell, appearance, and expiration date of ingredients yourself before consumption. Developers are not responsible for possible foodborne illnesses."
 }
