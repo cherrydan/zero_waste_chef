@@ -159,4 +159,27 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get disclaimerText =>
       'Descargo de responsabilidad: La IA sugiere opciones de recetas basadas en sus ingredientes, pero no evalúa su frescura real. Siempre verifique el olor, la apariencia y la fecha de caducidad de los ingredientes usted mismo antes de consumirlos. Los desarrolladores no son responsables de posibles enfermedades transmitidas por los alimentos.';
+
+  @override
+  String get favoritesTitle => 'Mis recetas ❤️';
+
+  @override
+  String get noSavedRecipes => 'Aún no hay recetas guardadas';
+
+  @override
+  String recipeStepsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pasos',
+      one: '1 paso',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginSlogan => 'Cocina con inteligencia, salva el planeta 🍏';
+
+  @override
+  String get googleSignIn => 'Iniciar sesión con Google';
 }

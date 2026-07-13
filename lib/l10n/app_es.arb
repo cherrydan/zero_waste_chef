@@ -72,5 +72,11 @@
   "recipeCopied": "¡Receta copiada al portapapeles!",
   "copyError": "No se pudo copiar la receta. Por favor, inténtelo de nuevo.",
   "aiErrorFallback": "¡Ups! Algo salió mal al generar la receta. ¡Por favor, inténtelo de nuevo!",
-  "disclaimerText": "Descargo de responsabilidad: La IA sugiere opciones de recetas basadas en sus ingredientes, pero no evalúa su frescura real. Siempre verifique el olor, la apariencia y la fecha de caducidad de los ingredientes usted mismo antes de consumirlos. Los desarrolladores no son responsables de posibles enfermedades transmitidas por los alimentos."
+  "disclaimerText": "Descargo de responsabilidad: La IA sugiere opciones de recetas basadas en sus ingredientes, pero no evalúa su frescura real. Siempre verifique el olor, la apariencia y la fecha de caducidad de los ingredientes usted mismo antes de consumirlos. Los desarrolladores no son responsables de posibles enfermedades transmitidas por los alimentos.",
+  "favoritesTitle": "Mis recetas ❤️",
+  "noSavedRecipes": "Aún no hay recetas guardadas",
+  "recipeStepsCount": "{count, plural, =1{1 paso} other{{count} pasos}}",
+  "loginSlogan": "Cocina con inteligencia, salva el planeta 🍏",
+  "googleSignIn": "Iniciar sesión con Google"
+
   }

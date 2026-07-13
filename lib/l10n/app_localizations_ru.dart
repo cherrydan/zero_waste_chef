@@ -157,4 +157,28 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get disclaimerText =>
       'Дисклеймер: ИИ предлагает варианты рецептов на основе ваших продуктов, но не оценивает их реальную свежесть. Всегда проверяйте запах, вид и срок годности ингредиентов самостоятельно перед употреблением. Разработчики не несут ответственности за возможные пищевые расстройства.';
+
+  @override
+  String get favoritesTitle => 'Мои рецепты ❤️';
+
+  @override
+  String get noSavedRecipes => 'Пока нет сохраненных рецептов';
+
+  @override
+  String recipeStepsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count шагов',
+      few: '$count шага',
+      one: '$count шаг',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginSlogan => 'Готовь с умом, спасай планету 🍏';
+
+  @override
+  String get googleSignIn => 'Войти через Google';
 }

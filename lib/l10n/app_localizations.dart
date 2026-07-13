@@ -103,7 +103,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Zero Waste Chef'**
+  /// **'Zero Waste Chef 🍏'**
   String get appTitle;
 
   /// No description provided for @fridgeTab.
@@ -375,6 +375,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disclaimer: AI suggests recipe options based on your ingredients, but does not assess their actual freshness. Always check the smell, appearance, and expiration date of ingredients yourself before consumption. Developers are not responsible for possible foodborne illnesses.'**
   String get disclaimerText;
+
+  /// No description provided for @favoritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Recipes ❤️'**
+  String get favoritesTitle;
+
+  /// No description provided for @noSavedRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved recipes yet'**
+  String get noSavedRecipes;
+
+  /// No description provided for @recipeStepsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 step} other{{count} steps}}'**
+  String recipeStepsCount(num count);
+
+  /// No description provided for @loginSlogan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cook smart, save the planet 🍏'**
+  String get loginSlogan;
+
+  /// No description provided for @googleSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get googleSignIn;
 }
 
 class _AppLocalizationsDelegate

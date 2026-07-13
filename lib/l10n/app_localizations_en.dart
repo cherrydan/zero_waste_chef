@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'Zero Waste Chef';
+  String get appTitle => 'Zero Waste Chef 🍏';
 
   @override
   String get fridgeTab => 'Fridge';
@@ -158,4 +158,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get disclaimerText =>
       'Disclaimer: AI suggests recipe options based on your ingredients, but does not assess their actual freshness. Always check the smell, appearance, and expiration date of ingredients yourself before consumption. Developers are not responsible for possible foodborne illnesses.';
+
+  @override
+  String get favoritesTitle => 'My Recipes ❤️';
+
+  @override
+  String get noSavedRecipes => 'No saved recipes yet';
+
+  @override
+  String recipeStepsCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count steps',
+      one: '1 step',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get loginSlogan => 'Cook smart, save the planet 🍏';
+
+  @override
+  String get googleSignIn => 'Sign in with Google';
 }

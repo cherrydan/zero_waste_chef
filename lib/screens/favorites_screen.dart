@@ -5,6 +5,9 @@ import 'recipe_screen.dart'; // Нам нужна модель Recipe отсюд
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zero_waste_chef/services/app_logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Импорт базы данных
+import '../l10n/app_localizations.dart';
+   
+
    
 
 
@@ -87,14 +90,17 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+   
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мои рецепты ❤️'),
+        title: Text(l10n.favoritesTitle),
         backgroundColor: Colors.green.shade100,
         // кнопка "Очистить все"
       ),
             body: _savedRecipes.isEmpty
-          ? const Center(child: Text('Пока нет сохраненных рецептов ❤️'))
+          ? Center(child: Text(l10n.noSavedRecipes))
           : ListView.builder(
               itemCount: _savedRecipes.length,
               itemBuilder: (context, index) {
@@ -103,7 +109,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     title: Text(recipe.title),
-                    subtitle: Text('${recipe.steps.length} шагов'),
+                    subtitle: Text(l10n.recipeStepsCount(recipe.steps.length)),
                     trailing: const Icon(Icons.chevron_right),
                                onTap: () {
               Navigator.push(
