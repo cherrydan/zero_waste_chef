@@ -9,6 +9,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zero_waste_chef/services/app_logger.dart'; // Наш логгер
 import 'package:zero_waste_chef/utils/date_helpers.dart'; 
 import '../l10n/app_localizations.dart';
+import 'package:flutter/services.dart';
+
 
 
 // Модель данных рецепта (из Шага 1)
@@ -292,6 +294,40 @@ class _RecipeScreenState extends State<RecipeScreen> {
     }
   }
 
+    Future<void> _copyRecipeToClipboard() async {
+    // Если рецепт еще не сгенерирован, ничего не делаем
+    if (_recipe == null) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    // Собираем красивый текстовый рецепт
+    final String recipeText = "${l10n.recipeTitle}: ${_recipe!.title}\n\n"
+        "${l10n.shoppingList}:\n${_recipe!.shoppingList.map((item) => "- $item").join('\n')}\n\n"
+        "${l10n.steps}:\n${_recipe!.steps.map((step) => "- $step").join('\n')}";
+
+    try {
+      // Копируем в системный буфер
+      await Clipboard.setData(ClipboardData(text: recipeText));
+      
+      // Проверяем, что экран еще открыт, прежде чем показать SnackBar
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.recipeCopied)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.copyError), 
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+
 
 
   @override
@@ -303,18 +339,23 @@ class _RecipeScreenState extends State<RecipeScreen> {
         appBar: AppBar(
         title: Text(_recipe?.title ?? l10n.recipeTitle),
         backgroundColor: Colors.green.shade100,
-        actions: [
+                actions: [
+          // Кнопка Избранного (она у тебя уже есть)
           IconButton(
             icon: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border, // Красное сердечко или пустое
-              color: _isFavorite ? Colors.red : Colors.grey, // Цвет сердечка
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : null,
             ),
-            onPressed: () {
-              
-              _toggleFavorite();
-            },
+            onPressed: _toggleFavorite,
+          ),
+          
+          // 🟢 НАША НОВАЯ КНОПКА КОПИРОВАНИЯ
+          IconButton(
+            icon: const Icon(Icons.copy_rounded),
+            onPressed: _copyRecipeToClipboard, // Привязываем функцию
           ),
         ],
+
       ),
 
 body: _errorMessage != null
