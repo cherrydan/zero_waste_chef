@@ -181,4 +181,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get googleSignIn => 'Войти через Google';
+
+  @override
+  String freeGenerations(Object current, Object max) {
+    return 'Бесплатных генераций сегодня: $current / $max';
+  }
 }

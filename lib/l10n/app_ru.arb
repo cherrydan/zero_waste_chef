@@ -78,6 +78,7 @@
   "noSavedRecipes": "Пока нет сохраненных рецептов",
   "recipeStepsCount": "{count, plural, =1{1 шаг} one{{count} шаг} few{{count} шага} other{{count} шагов}}",
   "loginSlogan": "Готовь с умом, спасай планету 🍏",
-  "googleSignIn": "Войти через Google"
+  "googleSignIn": "Войти через Google",
+  "freeGenerations": "Бесплатных генераций сегодня: {current} / {max}"
 
 }

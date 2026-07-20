@@ -87,6 +87,10 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   int _portions = 2; // Количество порций по умолчанию
 
+  int _dailyGenerationsCount = 0; // Текущее количество генераций сегодня
+  final int _maxDailyGenerations = 3; // Лимит бесплатных генераций в день
+
+
   // Заменили русские строки на универсальные ID:
   final List<String> _dietIds = ['regular', 'mediterranean', 'vegetarian'];
   String _selectedDiet = 'regular'; // По умолчанию ID 'regular'
@@ -139,6 +143,42 @@ class _FridgeScreenState extends State<FridgeScreen> {
       });
     }
   }
+
+    // Загружаем и проверяем лимит генераций на сегодняшний день
+  Future<void> _loadDailyGenerationsLimit() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Получаем текущую дату на устройстве в формате ГГГГ-ММ-ДД
+    final now = DateTime.now();
+    final todayString = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    
+    // Читаем из памяти сохраненную дату последней генерации и счетчик
+    final lastGenDate = prefs.getString('last_generation_date') ?? '';
+    int count = prefs.getInt('generations_count_today') ?? 0;
+    
+    if (lastGenDate != todayString) {
+      // Если наступил новый день (или это первый запуск) — сбрасываем счетчик в 0
+      count = 0;
+      await prefs.setString('last_generation_date', todayString);
+      await prefs.setInt('generations_count_today', count);
+    }
+    
+    setState(() {
+      _dailyGenerationsCount = count;
+    });
+  }
+
+    Future<void> _incrementGenerationsCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    setState(() {
+      _dailyGenerationsCount++;
+    });
+    
+    await prefs.setInt('generations_count_today', _dailyGenerationsCount);
+  }
+
+
 
   // ==========================================
   // ДАЛЬШЕ ИДУТ ТВОИ ДРУГИЕ ФУНКЦИИ (например, _loadFridgeData, _addIngredient и т.д.)
@@ -373,6 +413,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFridgeData(); // Загружаем продукты из памяти смартфона
+      _loadDailyGenerationsLimit();
     });
   }
 
@@ -605,6 +646,21 @@ class _FridgeScreenState extends State<FridgeScreen> {
             ),
           ),
           const SizedBox(height: 16),
+          // 🟢 Локализованный индикатор
+        Text(
+        l10n.freeGenerations(_maxDailyGenerations - _dailyGenerationsCount, _maxDailyGenerations),
+         textAlign: TextAlign.center,
+          style: TextStyle(
+           fontSize: 14,
+             color: _dailyGenerationsCount >= _maxDailyGenerations 
+            ? Colors.red.shade700 
+            : Colors.grey.shade600,
+          fontWeight: _dailyGenerationsCount >= _maxDailyGenerations 
+        ? FontWeight.bold 
+        : FontWeight.normal,
+  ),
+),
+
 
           // 5. Кнопка "Сгенерировать"
       
@@ -612,7 +668,10 @@ class _FridgeScreenState extends State<FridgeScreen> {
             width: double.infinity,
             height: 50,
             child: ElevatedButton(
-              onPressed: () {
+              onPressed: _dailyGenerationsCount < _maxDailyGenerations ? () async{
+              await _incrementGenerationsCount();
+              if (!mounted) return;
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -625,7 +684,8 @@ class _FridgeScreenState extends State<FridgeScreen> {
                     ),
                   ),
                 );
-              },
+              }
+              : null,
               // ...
 
               style: ElevatedButton.styleFrom(

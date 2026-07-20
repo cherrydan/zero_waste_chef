@@ -405,6 +405,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in with Google'**
   String get googleSignIn;
+
+  /// No description provided for @freeGenerations.
+  ///
+  /// In en, this message translates to:
+  /// **'Free generations today: {current} / {max}'**
+  String freeGenerations(Object current, Object max);
 }
 
 class _AppLocalizationsDelegate

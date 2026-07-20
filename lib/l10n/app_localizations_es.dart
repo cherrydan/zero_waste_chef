@@ -182,4 +182,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get googleSignIn => 'Iniciar sesión con Google';
+
+  @override
+  String freeGenerations(Object current, Object max) {
+    return 'Generaciones gratuitas hoy: $current / $max';
+  }
 }
