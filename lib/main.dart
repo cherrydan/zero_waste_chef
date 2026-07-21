@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart'; // Импорт Firebase
 import 'package:zero_waste_chef/screens/auth_wrapper.dart';
 import 'firebase_options.dart'; // Настройки Firebase
 import 'l10n/app_localizations.dart'; // Наш новый авто-переводчик
+import 'services/purchase_service.dart'; // Или твой правильный относительный путь
    
 
    
@@ -18,6 +19,8 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await PurchaseService.init(); //3. Инициализируем сервис покупок
 
   // 3. Запускаем приложение
   runApp(const MyApp());
