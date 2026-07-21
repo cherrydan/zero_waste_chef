@@ -186,4 +186,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String freeGenerations(Object current, Object max) {
     return 'Бесплатных генераций сегодня: $current / $max';
   }
+
+  @override
+  String get paywallTitle => 'Перейти на Premium ⭐️';
+
+  @override
+  String get paywallSubtitle => 'Раскройте весь потенциал Zero Waste Chef';
+
+  @override
+  String get featureUnlimited => 'Безлимитная генерация рецептов ИИ';
+
+  @override
+  String get featureFamily => 'Семейный холодильник (скоро)';
+
+  @override
+  String get featureSupport => 'Поддержка эко-разработки проекта';
+
+  @override
+  String get premiumPrice => '299 ₽ / месяц';
+
+  @override
+  String get subscribeButton => 'Получить Premium доступ';
+
+  @override
+  String get restorePurchases => 'Восстановить покупки';
 }

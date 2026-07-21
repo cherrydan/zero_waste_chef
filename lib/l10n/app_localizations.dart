@@ -411,6 +411,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Free generations today: {current} / {max}'**
   String freeGenerations(Object current, Object max);
+
+  /// No description provided for @paywallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Go Premium ⭐️'**
+  String get paywallTitle;
+
+  /// No description provided for @paywallSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock the full potential of Zero Waste Chef'**
+  String get paywallSubtitle;
+
+  /// No description provided for @featureUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited AI menu generations'**
+  String get featureUnlimited;
+
+  /// No description provided for @featureFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Fridge sync (coming soon)'**
+  String get featureFamily;
+
+  /// No description provided for @featureSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support eco-friendly development'**
+  String get featureSupport;
+
+  /// No description provided for @premiumPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'\$4.99 / month'**
+  String get premiumPrice;
+
+  /// No description provided for @subscribeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Premium Access'**
+  String get subscribeButton;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get restorePurchases;
 }
 
 class _AppLocalizationsDelegate

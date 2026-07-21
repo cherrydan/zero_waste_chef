@@ -187,4 +187,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String freeGenerations(Object current, Object max) {
     return 'Generaciones gratuitas hoy: $current / $max';
   }
+
+  @override
+  String get paywallTitle => 'Hazte Premium ⭐️';
+
+  @override
+  String get paywallSubtitle =>
+      'Desbloquea todo el potencial de Chef Zero Waste';
+
+  @override
+  String get featureUnlimited => 'Generación ilimitada de recetas con IA';
+
+  @override
+  String get featureFamily => 'Sincronización familiar (próximamente)';
+
+  @override
+  String get featureSupport => 'Apoya el desarrollo ecológico del proyecto';
+
+  @override
+  String get premiumPrice => '4,99 € / mes';
+
+  @override
+  String get subscribeButton => 'Obtener acceso Premium';
+
+  @override
+  String get restorePurchases => 'Restaurar compras';
 }

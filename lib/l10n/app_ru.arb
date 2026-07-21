@@ -79,6 +79,15 @@
   "recipeStepsCount": "{count, plural, =1{1 шаг} one{{count} шаг} few{{count} шага} other{{count} шагов}}",
   "loginSlogan": "Готовь с умом, спасай планету 🍏",
   "googleSignIn": "Войти через Google",
-  "freeGenerations": "Бесплатных генераций сегодня: {current} / {max}"
+  "freeGenerations": "Бесплатных генераций сегодня: {current} / {max}",
+  "paywallTitle": "Перейти на Premium ⭐️",
+  "paywallSubtitle": "Раскройте весь потенциал Zero Waste Chef",
+  "featureUnlimited": "Безлимитная генерация рецептов ИИ",
+  "featureFamily": "Семейный холодильник (скоро)",
+  "featureSupport": "Поддержка эко-разработки проекта",
+  "premiumPrice": "299 ₽ / месяц",
+  "subscribeButton": "Получить Premium доступ",
+  "restorePurchases": "Восстановить покупки"
+
 
 }

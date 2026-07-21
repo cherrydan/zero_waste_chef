@@ -186,4 +186,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String freeGenerations(Object current, Object max) {
     return 'Free generations today: $current / $max';
   }
+
+  @override
+  String get paywallTitle => 'Go Premium ⭐️';
+
+  @override
+  String get paywallSubtitle => 'Unlock the full potential of Zero Waste Chef';
+
+  @override
+  String get featureUnlimited => 'Unlimited AI menu generations';
+
+  @override
+  String get featureFamily => 'Family Fridge sync (coming soon)';
+
+  @override
+  String get featureSupport => 'Support eco-friendly development';
+
+  @override
+  String get premiumPrice => '\$4.99 / month';
+
+  @override
+  String get subscribeButton => 'Unlock Premium Access';
+
+  @override
+  String get restorePurchases => 'Restore purchases';
 }

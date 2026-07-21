@@ -78,6 +78,14 @@
   "recipeStepsCount": "{count, plural, =1{1 paso} other{{count} pasos}}",
   "loginSlogan": "Cocina con inteligencia, salva el planeta 🍏",
   "googleSignIn": "Iniciar sesión con Google",
-  "freeGenerations": "Generaciones gratuitas hoy: {current} / {max}"
+  "freeGenerations": "Generaciones gratuitas hoy: {current} / {max}",
+  "paywallTitle": "Hazte Premium ⭐️",
+  "paywallSubtitle": "Desbloquea todo el potencial de Chef Zero Waste",
+  "featureUnlimited": "Generación ilimitada de recetas con IA",
+  "featureFamily": "Sincronización familiar (próximamente)",
+  "featureSupport": "Apoya el desarrollo ecológico del proyecto",
+  "premiumPrice": "4,99 € / mes",
+  "subscribeButton": "Obtener acceso Premium",
+  "restorePurchases": "Restaurar compras"
 
   }

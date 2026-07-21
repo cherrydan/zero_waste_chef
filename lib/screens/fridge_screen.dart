@@ -8,6 +8,8 @@ import 'favorites_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zero_waste_chef/utils/date_helpers.dart';    
 import '../l10n/app_localizations.dart';
+import 'paywall_screen.dart';
+   
    
    
 
@@ -667,35 +669,49 @@ class _FridgeScreenState extends State<FridgeScreen> {
           SizedBox(
             width: double.infinity,
             height: 50,
-            child: ElevatedButton(
-              onPressed: _dailyGenerationsCount < _maxDailyGenerations ? () async{
-              await _incrementGenerationsCount();
-              if (!mounted) return;
-
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RecipeScreen(
-                      selectedIngredients: _ingredients,
-                      portions: _portions,
-                      // ПЕРЕДАЕМ ПЕРЕВЕДЕННЫЙ ТЕКСТ ДЛЯ OpenAI:
-                      diet: _getDietName(_selectedDiet), 
-                      savedRecipe: null
-                    ),
-                  ),
-                );
-              }
-              : null,
-              // ...
-
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(l10n.generateButton, style: TextStyle(fontSize: 16)),
-            ),
+           child: ElevatedButton(
+  style: ElevatedButton.styleFrom(
+    // 🟢 Меняем цвет кнопки динамически!
+    backgroundColor: _dailyGenerationsCount < _maxDailyGenerations 
+        ? Colors.green 
+        : Colors.amber.shade700, 
+    foregroundColor: Colors.white,
+  ),
+  onPressed: () async {
+    if (_dailyGenerationsCount < _maxDailyGenerations) {
+      // 🟢 Сценарий 1: Лимит не исчерпан — списываем попытку и генерируем
+      await _incrementGenerationsCount();
+      
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecipeScreen(
+            selectedIngredients: _ingredients,
+            portions: _portions,
+            diet: _getDietName(_selectedDiet), 
+            savedRecipe: null,
           ),
+        ),
+      );
+    } else {
+      // 🟢 Сценарий 2: Лимит исчерпан — просто ведем на экран оплаты (без списания!)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const PaywallScreen(),
+        ),
+      );
+    }
+  },
+  // 🟢 Меняем текст кнопки динамически!
+  child: Text(
+    _dailyGenerationsCount < _maxDailyGenerations
+        ? l10n.generateButton
+        : l10n.paywallTitle,
+  ),
+),
+  ),
         ],
       ),
     );

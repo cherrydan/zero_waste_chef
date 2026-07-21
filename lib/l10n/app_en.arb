@@ -80,6 +80,15 @@
   "recipeStepsCount": "{count, plural, =1{1 step} other{{count} steps}}",
   "loginSlogan": "Cook smart, save the planet 🍏",
   "googleSignIn": "Sign in with Google",
-  "freeGenerations": "Free generations today: {current} / {max}"
+  "freeGenerations": "Free generations today: {current} / {max}",
+  "paywallTitle": "Go Premium ⭐️",
+  "paywallSubtitle": "Unlock the full potential of Zero Waste Chef",
+  "featureUnlimited": "Unlimited AI menu generations",
+  "featureFamily": "Family Fridge sync (coming soon)",
+  "featureSupport": "Support eco-friendly development",
+  "premiumPrice": "$4.99 / month",
+  "subscribeButton": "Unlock Premium Access",
+  "restorePurchases": "Restore purchases"
+
 
 }
