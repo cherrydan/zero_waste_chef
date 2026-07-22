@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zero_waste_chef/utils/date_helpers.dart';    
 import '../l10n/app_localizations.dart';
 import 'paywall_screen.dart';
+import '../services/purchase_service.dart'; // 🟢 Для доступа к сервису покупок
    
    
    
@@ -110,6 +111,10 @@ class _FridgeScreenState extends State<FridgeScreen> {
     PopularProduct(id: 'milk', emoji: '🥛'),
   ];
 
+  bool _isUserPremium = false; // 🟢 Флаг статуса Premium
+    
+
+
   // Функция сохранения холодильника в память телефона и Firestore
   Future<void> _saveFridgeData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -179,6 +184,20 @@ class _FridgeScreenState extends State<FridgeScreen> {
     
     await prefs.setInt('generations_count_today', _dailyGenerationsCount);
   }
+
+  Future<void> _checkPremiumStatus() async {
+  bool isPremium = await PurchaseService.isUserPremium();
+  if (!mounted) return;
+    setState(() {
+      _isUserPremium = isPremium;
+        if (_isUserPremium) {
+            _dailyGenerationsCount = 0; // Сбрасываем лимит для Премиума
+          }
+        });
+  }
+    
+
+
 
 
 
@@ -416,6 +435,7 @@ class _FridgeScreenState extends State<FridgeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadFridgeData(); // Загружаем продукты из памяти смартфона
       _loadDailyGenerationsLimit();
+      _checkPremiumStatus();
     });
   }
 
@@ -696,12 +716,15 @@ class _FridgeScreenState extends State<FridgeScreen> {
       );
     } else {
       // 🟢 Сценарий 2: Лимит исчерпан — просто ведем на экран оплаты (без списания!)
+      // Внутри onPressed кнопки генерации (сценарий оплаты):
       Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const PaywallScreen(),
-        ),
-      );
+      context,
+      MaterialPageRoute(builder: (context) => const PaywallScreen()),
+      ).then((_) {
+    // 🟢 Как только юзер закрыл Paywall - обновляем состояние холодильника
+    _checkPremiumStatus(); 
+      });
+
     }
   },
   // 🟢 Меняем текст кнопки динамически!

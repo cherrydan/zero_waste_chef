@@ -1,8 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:purchases_flutter/purchases_flutter.dart'; // 🟢 Импорт для работы с Package
+import '../services/purchase_service.dart'; // 🟢 Наш сервис покупок
 import '../l10n/app_localizations.dart';
 
-class PaywallScreen extends StatelessWidget {
+class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
+
+  @override
+  State<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends State<PaywallScreen> {
+  Package? _package; // Переменная для хранения загруженного пакета подписки
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOffering(); // 🟢 Загружаем наше предложение при старте экрана
+  }
+
+  Future<void> _loadOffering() async {
+    final offering = await PurchaseService.getMonthlyOffering();
+    if (offering != null && mounted) {
+      setState(() {
+        _package = offering.monthly; // Получаем наш месячный пакет ($rc_monthly)
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +37,6 @@ class PaywallScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        // Кнопка закрытия экрана, чтобы пользователь мог вернуться назад
         leading: IconButton(
           icon: const Icon(Icons.close_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
@@ -29,7 +52,6 @@ class PaywallScreen extends StatelessWidget {
               Column(
                 children: [
                   const SizedBox(height: 10),
-                  // Золотая иконка Premium
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -43,8 +65,6 @@ class PaywallScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
-                  // Заголовок
                   Text(
                     l10n.paywallTitle,
                     textAlign: TextAlign.center,
@@ -55,8 +75,6 @@ class PaywallScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
-                  // Подзаголовок
                   Text(
                     l10n.paywallSubtitle,
                     textAlign: TextAlign.center,
@@ -68,7 +86,7 @@ class PaywallScreen extends StatelessWidget {
                 ],
               ),
 
-              // Средняя часть: Список преимуществ (Features List)
+              // Средняя часть: Список преимуществ
               Column(
                 children: [
                   _buildFeatureRow(l10n.featureUnlimited),
@@ -77,10 +95,10 @@ class PaywallScreen extends StatelessWidget {
                 ],
               ),
 
-              // Нижняя часть: Карточка с ценой, Кнопка купить и Восстановить покупки
+              // Нижняя часть: Динамическая цена, Кнопка купить и Восстановить покупки
               Column(
                 children: [
-                  // Красивая рамка с ценой
+                  // 🟢 Динамическая цена из магазина (или '...' пока грузится)
                   Container(
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                     decoration: BoxDecoration(
@@ -89,7 +107,7 @@ class PaywallScreen extends StatelessWidget {
                       border: Border.all(color: Colors.green.shade100),
                     ),
                     child: Text(
-                      l10n.premiumPrice,
+                      _package?.storeProduct.priceString ?? '...', 
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -103,6 +121,7 @@ class PaywallScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     height: 54,
+                    // Кнопка неактивна, пока пакет загружается из сети
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
@@ -113,9 +132,22 @@ class PaywallScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      onPressed: () {
-                        // Здесь в будущем будет вызов покупки RevenueCat
-                      },
+                          onPressed: _package == null 
+                          ? null 
+                          : () async {
+                              // 1. Покупаем
+                              final success = await PurchaseService.purchasePackage(_package!);
+                              
+                              // 2. 🟢 Проверяем mounted прямо у BuildContext!
+                              if (!context.mounted) return;
+
+                              // 3. Используем контекст
+                              if (success) {
+                                Navigator.of(context).pop();
+                              }
+                            },
+
+
                       child: Text(
                         l10n.subscribeButton,
                         style: const TextStyle(
@@ -127,10 +159,9 @@ class PaywallScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Кнопка восстановления покупок
                   TextButton(
                     onPressed: () {
-                      // Здесь в будущем будет восстановление покупок
+                      // Восстановление покупок
                     },
                     child: Text(
                       l10n.restorePurchases,
@@ -150,7 +181,6 @@ class PaywallScreen extends StatelessWidget {
     );
   }
 
-  // Вспомогательный метод для красивой строки преимуществ
   Widget _buildFeatureRow(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),

@@ -4,8 +4,10 @@ import '../services/app_logger.dart'; // Наш логгер для отслеж
 
 class PurchaseService {
   // Системные ключи для связи с RevenueCat (получим их в админке позже)
-  static const _googleApiKey = "goog_placeholder_key"; // Ключ для Android
-  static const _appleApiKey = "appl_placeholder_key";   // Ключ для iOS
+  static const _googleApiKey = "test_RTiIEKtNdoALeDKbjPdwZnmjxEd";
+  static const _appleApiKey = "test_RTiIEKtNdoALeDKbjPdwZnmjxEd";
+   
+
 
   // Инициализация сервиса покупок
   static Future<void> init() async {
@@ -41,4 +43,31 @@ class PurchaseService {
       return false;
     }
   }
+
+    // 🟢 1. Загружаем наше дефолтное предложение (Offering) из сети
+  static Future<Offering?> getMonthlyOffering() async {
+    try {
+      Offerings offerings = await Purchases.getOfferings();
+      // Ищем наше предложение с ID 'default'
+      if (offerings.current != null) {
+        return offerings.current;
+      }
+    } catch (e) {
+      logger.e("Ошибка загрузки предложений: $e");
+    }
+    return null;
+  }
+
+  // 🟢 2. Метод совершения покупки пакета
+  static Future<bool> purchasePackage(Package package) async {
+    try {
+      CustomerInfo customerInfo = await Purchases.purchasePackage(package);
+      // Проверяем, появилось ли у пользователя право доступа 'premium' после оплаты
+      return customerInfo.entitlements.all["premium"]?.isActive ?? false;
+    } catch (e) {
+      logger.e("Ошибка при совершении покупки: $e");
+      return false;
+    }
+  }
+
 }
