@@ -132,20 +132,29 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                          onPressed: _package == null 
+                                                onPressed: _package == null 
                           ? null 
                           : () async {
-                              // 1. Покупаем
+                              // 1. Запускаем покупку пакета
                               final success = await PurchaseService.purchasePackage(_package!);
                               
-                              // 2. 🟢 Проверяем mounted прямо у BuildContext!
+                              // 2. Проверяем mounted у BuildContext, чтобы линтер спал спокойно
                               if (!context.mounted) return;
 
-                              // 3. Используем контекст
+                              // 3. Обрабатываем результат
                               if (success) {
-                                Navigator.of(context).pop();
+                                Navigator.of(context).pop(); // Успех — закрываем экран оплаты
+                              } else {
+                                // 🟢 Не улетели — показываем локализованную ошибку
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(l10n.paymentFailed),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
                               }
                             },
+
 
 
                       child: Text(

@@ -210,4 +210,8 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Восстановить покупки';
+
+  @override
+  String get paymentFailed =>
+      'Покупка не удалась или была отменена. Пожалуйста, попробуйте еще раз.';
 }

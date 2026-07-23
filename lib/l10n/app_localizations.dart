@@ -459,6 +459,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore purchases'**
   String get restorePurchases;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase failed or canceled. Please try again.'**
+  String get paymentFailed;
 }
 
 class _AppLocalizationsDelegate

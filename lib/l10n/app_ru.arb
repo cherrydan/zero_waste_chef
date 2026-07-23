@@ -87,7 +87,9 @@
   "featureSupport": "Поддержка эко-разработки проекта",
   "premiumPrice": "299 ₽ / месяц",
   "subscribeButton": "Получить Premium доступ",
-  "restorePurchases": "Восстановить покупки"
+  "restorePurchases": "Восстановить покупки",
+  "paymentFailed": "Покупка не удалась или была отменена. Пожалуйста, попробуйте еще раз."
+
 
 
 }

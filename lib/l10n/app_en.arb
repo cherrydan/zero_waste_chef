@@ -88,7 +88,9 @@
   "featureSupport": "Support eco-friendly development",
   "premiumPrice": "$4.99 / month",
   "subscribeButton": "Unlock Premium Access",
-  "restorePurchases": "Restore purchases"
+  "restorePurchases": "Restore purchases",
+  "paymentFailed": "Purchase failed or canceled. Please try again."
+
 
 
 }

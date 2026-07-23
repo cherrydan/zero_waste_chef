@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../services/app_logger.dart'; // Наш логгер для отслеживания ошибок оплаты
+import 'package:flutter/services.dart'; // Нужен для PlatformException
+   
+
 
 class PurchaseService {
   // Системные ключи для связи с RevenueCat (получим их в админке позже)
@@ -58,16 +61,26 @@ class PurchaseService {
     return null;
   }
 
-  // 🟢 2. Метод совершения покупки пакета
-  static Future<bool> purchasePackage(Package package) async {
+      static Future<bool> purchasePackage(Package package) async {
     try {
       CustomerInfo customerInfo = await Purchases.purchasePackage(package);
-      // Проверяем, появилось ли у пользователя право доступа 'premium' после оплаты
       return customerInfo.entitlements.all["premium"]?.isActive ?? false;
+    } on PlatformException catch (e) {
+      // 🟢 Используем PurchasesErrorHelper для определения кода ошибки
+      var errorCode = PurchasesErrorHelper.getErrorCode(e);
+      
+      if (errorCode == PurchasesErrorCode.purchaseCancelledError) {
+        logger.i("Пользователь отменил покупку");
+      } else {
+        logger.e("Ошибка покупки: ${e.message}");
+      }
+      return false;
     } catch (e) {
-      logger.e("Ошибка при совершении покупки: $e");
+      logger.e("Непредвиденная ошибка: $e");
       return false;
     }
   }
+
+
 
 }

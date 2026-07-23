@@ -697,36 +697,51 @@ class _FridgeScreenState extends State<FridgeScreen> {
         : Colors.amber.shade700, 
     foregroundColor: Colors.white,
   ),
-  onPressed: () async {
-    if (_dailyGenerationsCount < _maxDailyGenerations) {
-      // 🟢 Сценарий 1: Лимит не исчерпан — списываем попытку и генерируем
-      await _incrementGenerationsCount();
-      
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RecipeScreen(
-            selectedIngredients: _ingredients,
-            portions: _portions,
-            diet: _getDietName(_selectedDiet), 
-            savedRecipe: null,
-          ),
-        ),
-      );
-    } else {
-      // 🟢 Сценарий 2: Лимит исчерпан — просто ведем на экран оплаты (без списания!)
-      // Внутри onPressed кнопки генерации (сценарий оплаты):
-      Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PaywallScreen()),
-      ).then((_) {
-    // 🟢 Как только юзер закрыл Paywall - обновляем состояние холодильника
-    _checkPremiumStatus(); 
-      });
+                onPressed: () async {
+                // Проверяем статус Premium. _isUserPremium уже обновляется через _checkPremiumStatus()
+                // при возвращении с Paywall или при старте экрана.
+                
+                if (_isUserPremium) {
+                  // 🟢 Сценарий 1: Пользователь Premium. ВСЕГДА генерируем, счетчик не трогаем!
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecipeScreen(
+                        selectedIngredients: _ingredients,
+                        portions: _portions,
+                        diet: _getDietName(_selectedDiet),
+                        savedRecipe: null,
+                      ),
+                    ),
+                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
+                } else if (_dailyGenerationsCount < _maxDailyGenerations) {
+                  // 🟢 Сценарий 2: Пользователь НЕ Premium, НО у него ЕСТЬ бесплатные генерации
+                  await _incrementGenerationsCount(); // Списываем попытку
+                  
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecipeScreen(
+                        selectedIngredients: _ingredients,
+                        portions: _portions,
+                        diet: _getDietName(_selectedDiet),
+                        savedRecipe: null,
+                      ),
+                    ),
+                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
+                } else {
+                  // 🟢 Сценарий 3: Пользователь НЕ Premium, и лимит ИСЧЕРПАН
+                  // Ведем на экран оплаты (без списания!)
+                  if (!mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PaywallScreen()),
+                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
+                }
+              },
 
-    }
-  },
   // 🟢 Меняем текст кнопки динамически!
   child: Text(
     _dailyGenerationsCount < _maxDailyGenerations

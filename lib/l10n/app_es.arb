@@ -86,6 +86,8 @@
   "featureSupport": "Apoya el desarrollo ecológico del proyecto",
   "premiumPrice": "4,99 € / mes",
   "subscribeButton": "Obtener acceso Premium",
-  "restorePurchases": "Restaurar compras"
+  "restorePurchases": "Restaurar compras",
+  "paymentFailed": "La compra falló o fue cancelada. Por favor, inténtelo de nuevo."
+
 
   }

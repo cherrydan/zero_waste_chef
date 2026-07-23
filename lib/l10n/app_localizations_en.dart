@@ -210,4 +210,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get restorePurchases => 'Restore purchases';
+
+  @override
+  String get paymentFailed => 'Purchase failed or canceled. Please try again.';
 }
