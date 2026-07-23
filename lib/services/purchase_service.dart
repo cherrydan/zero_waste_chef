@@ -47,6 +47,27 @@ class PurchaseService {
     }
   }
 
+    // 🟢 Привязываем покупки к конкретному Firebase UID
+  static Future<void> login(String firebaseUid) async {
+    try {
+      await Purchases.logIn(firebaseUid);
+      logger.i("RevenueCat успешно привязан к Firebase UID: $firebaseUid");
+    } catch (e) {
+      logger.e("Ошибка привязки RevenueCat к UID: $e");
+    }
+  }
+
+  // 🟢 Отвязываем покупки при выходе пользователя
+  static Future<void> logout() async {
+    try {
+      await Purchases.logOut();
+      logger.i("RevenueCat успешно отвязан.");
+    } catch (e) {
+      logger.e("Ошибка отвязки RevenueCat: $e");
+    }
+  }
+
+
     // 🟢 1. Загружаем наше дефолтное предложение (Offering) из сети
   static Future<Offering?> getMonthlyOffering() async {
     try {
