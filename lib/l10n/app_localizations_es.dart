@@ -216,4 +216,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get paymentFailed =>
       'La compra falló o fue cancelada. Por favor, inténtelo de nuevo.';
+
+  @override
+  String premiumActiveUntil(String date) {
+    return 'Premium activo hasta: $date ⭐️';
+  }
 }

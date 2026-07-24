@@ -214,4 +214,9 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get paymentFailed =>
       'Покупка не удалась или была отменена. Пожалуйста, попробуйте еще раз.';
+
+  @override
+  String premiumActiveUntil(String date) {
+    return 'Премиум активен до: $date ⭐️';
+  }
 }

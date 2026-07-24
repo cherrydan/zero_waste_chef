@@ -465,6 +465,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purchase failed or canceled. Please try again.'**
   String get paymentFailed;
+
+  /// No description provided for @premiumActiveUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium active until: {date} ⭐️'**
+  String premiumActiveUntil(String date);
 }
 
 class _AppLocalizationsDelegate

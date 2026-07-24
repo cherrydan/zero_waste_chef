@@ -47,6 +47,39 @@ class PurchaseService {
     }
   }
 
+  // 🟢 Получаем дату окончания Premium подписки в красивом формате
+  static Future<String?> getPremiumExpirationDate() async {
+    try {
+      CustomerInfo customerInfo = await Purchases.getCustomerInfo();
+      final entitlement = customerInfo.entitlements.all["premium"];
+      
+      if (entitlement != null && entitlement.isActive) {
+        // Используем dynamic, чтобы обойти строгость компилятора разных версий SDK
+        final dynamic rawExpDate = entitlement.expirationDate;
+        
+        if (rawExpDate != null) {
+          DateTime? expDateTime;
+          
+          if (rawExpDate is String) {
+            expDateTime = DateTime.tryParse(rawExpDate);
+          } else if (rawExpDate is DateTime) {
+            expDateTime = rawExpDate;
+          }
+          
+          if (expDateTime != null) {
+            // Возвращаем дату в удобном формате: ДД.ММ.ГГГГ
+            return "${expDateTime.day.toString().padLeft(2, '0')}.${expDateTime.month.toString().padLeft(2, '0')}.${expDateTime.year}";
+          }
+        }
+      }
+    } catch (e) {
+      logger.e("Ошибка получения даты окончания подписки: $e");
+    }
+    return null;
+  }
+
+
+
     // 🟢 Привязываем покупки к конкретному Firebase UID
   static Future<void> login(String firebaseUid) async {
     try {
@@ -57,15 +90,23 @@ class PurchaseService {
     }
   }
 
-  // 🟢 Отвязываем покупки при выходе пользователя
+    // 🟢 Отвязываем покупки при выходе пользователя (с защитой от анонимного вызова)
   static Future<void> logout() async {
     try {
-      await Purchases.logOut();
-      logger.i("RevenueCat успешно отвязан.");
+      // Проверяем, анонимный ли пользователь сейчас в RevenueCat
+      bool isAnonymous = await Purchases.isAnonymous;
+      
+      if (!isAnonymous) {
+        await Purchases.logOut();
+        logger.i("RevenueCat успешно отвязан.");
+      } else {
+        logger.i("Пользователь уже анонимный, вызов logOut пропущен.");
+      }
     } catch (e) {
       logger.e("Ошибка отвязки RevenueCat: $e");
     }
   }
+
 
 
     // 🟢 1. Загружаем наше дефолтное предложение (Offering) из сети

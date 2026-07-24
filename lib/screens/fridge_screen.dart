@@ -101,6 +101,9 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   DateTime? _selectedExpiryDate; // Временная переменная для нового продукта
 
+  String? _premiumExpirationDate; // 🟢 Переменная для хранения даты окончания подписки
+
+
   final List<PopularProduct> _popularProducts = [
     PopularProduct(id: 'tomatoes', emoji: '🍅'),
     PopularProduct(id: 'chicken', emoji: '🍗'),
@@ -185,17 +188,27 @@ class _FridgeScreenState extends State<FridgeScreen> {
     await prefs.setInt('generations_count_today', _dailyGenerationsCount);
   }
 
-  Future<void> _checkPremiumStatus() async {
-  bool isPremium = await PurchaseService.isUserPremium();
-  if (!mounted) return;
+    Future<void> _checkPremiumStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await PurchaseService.login(user.uid);
+    }
+    
+    bool isPremium = await PurchaseService.isUserPremium();
+    // 🟢 Получаем дату окончания, если пользователь Premium
+    String? expirationDate = isPremium ? await PurchaseService.getPremiumExpirationDate() : null;
+    
+    if (!mounted) return;
+    
     setState(() {
       _isUserPremium = isPremium;
-        if (_isUserPremium) {
-            _dailyGenerationsCount = 0; // Сбрасываем лимит для Премиума
-          }
-        });
+      _premiumExpirationDate = expirationDate; // Сохраняем дату в стейт
+      if (_isUserPremium) {
+        _dailyGenerationsCount = 0; 
+      }
+    });
   }
-    
+
 
 
 
@@ -682,6 +695,25 @@ class _FridgeScreenState extends State<FridgeScreen> {
         : FontWeight.normal,
   ),
 ),
+
+          const SizedBox(height: 24), // Твой отступ от порций
+
+          // 🟢 ВОТ СЮДА ВСТАВЛЯЕМ НАШУ НАДПИСЬ:
+          if (_isUserPremium && _premiumExpirationDate != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0), // Отступ от надписи до кнопки
+              child: Center(
+                child: Text(
+                  l10n.premiumActiveUntil(_premiumExpirationDate!),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.amber, // Золотой Premium акцент
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
 
 
           // 5. Кнопка "Сгенерировать"

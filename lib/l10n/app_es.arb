@@ -87,7 +87,16 @@
   "premiumPrice": "4,99 € / mes",
   "subscribeButton": "Obtener acceso Premium",
   "restorePurchases": "Restaurar compras",
-  "paymentFailed": "La compra falló o fue cancelada. Por favor, inténtelo de nuevo."
+  "paymentFailed": "La compra falló o fue cancelada. Por favor, inténtelo de nuevo.",
+  "premiumActiveUntil": "Premium activo hasta: {date} ⭐️",
+  "@premiumActiveUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
+
 
 
   }

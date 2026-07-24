@@ -89,7 +89,16 @@
   "premiumPrice": "$4.99 / month",
   "subscribeButton": "Unlock Premium Access",
   "restorePurchases": "Restore purchases",
-  "paymentFailed": "Purchase failed or canceled. Please try again."
+  "paymentFailed": "Purchase failed or canceled. Please try again.",
+  "premiumActiveUntil": "Premium active until: {date} ⭐️",
+  "@premiumActiveUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
+
 
 
 
