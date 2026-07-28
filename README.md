@@ -1,17 +1,28 @@
-# zero_waste_chef
+# Zero Waste Chef 🍏
 
-A new Flutter project.
+An eco-friendly AI-powered assistant designed to minimize food waste by generating personalized recipes based on what's currently in your fridge.
 
-## Getting Started
+## 🚀 Key Features
 
-This project is a starting point for a Flutter application.
+*   **AI-Powered Recipes:** Generate custom meal plans based on your specific ingredients.
+*   **Waste Management:** Tracks expiration dates and prioritizes ingredients that need to be used soon.
+*   **Dietary Compliance:** Supports Regular, Mediterranean, and Vegetarian diets with strict ingredient filtering.
+*   **Smart Subscription:** Monetized via RevenueCat with premium features like unlimited generations.
+*   **Multi-language Support:** Fully localized for English, Russian, and Spanish.
 
-A few resources to get you started if this is your first Flutter project:
+## 🛠 Tech Stack
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+*   **Frontend:** Flutter
+*   **Backend & Auth:** Firebase (Firestore, Authentication)
+*   **AI Integration:** OpenAI API (GPT-3.5/4)
+*   **Monetization:** RevenueCat
+*   **Localization:** `flutter_localizations` with `.arb` support
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 📸 App Showcase
+
+| Fridge | Recipe | Profile | Paywall |
+| :---: | :---: | :---: | :---: |
+| ![Fridge](docs/screenshots/image_1.jpg) | ![Recipe](docs/screenshots/image_2.jpg) | ![Profile](docs/screenshots/image_3.jpg) | ![Paywall](docs/screenshots/image_4.jpg) |
+
+---
+*Built with ❤️ to save the planet, one recipe at a time.*
