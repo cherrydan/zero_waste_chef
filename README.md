@@ -22,7 +22,7 @@ An eco-friendly AI-powered assistant designed to minimize food waste by generati
 
 | Fridge | Recipe | Profile | Paywall |
 | :---: | :---: | :---: | :---: |
-| ![Fridge](docs/screenshots/image_1.jpg) | ![Recipe](docs/screenshots/image_2.jpg) | ![Profile](docs/screenshots/image_3.jpg) | ![Paywall](docs/screenshots/image_4.jpg) |
+| ![Fridge](docs/screenshots/Fridge.jpg) | ![Recipe](docs/screenshots/Recipe.jpg) | ![Profile](docs/screenshots/Profile.jpg) | ![Paywall](docs/screenshots/Paywall.jpg) |
 
 ---
 *Built with ❤️ to save the planet, one recipe at a time.*
