@@ -97,9 +97,10 @@
         "type": "String"
       }
     }
-  }
-
-
-
-
+    },
+"rankRookie": "Kitchen Rookie",
+"rankArtisan": "Leftover Artisan",
+"rankAlchemist": "Pantry Alchemist",
+"rankSousChef": "Zero-Waste Sous Chef",
+"rankExecutive": "Executive Eco-Chef"
 }

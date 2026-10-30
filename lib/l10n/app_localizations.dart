@@ -471,6 +471,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Premium active until: {date} ⭐️'**
   String premiumActiveUntil(String date);
+
+  /// No description provided for @rankRookie.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen Rookie'**
+  String get rankRookie;
+
+  /// No description provided for @rankArtisan.
+  ///
+  /// In en, this message translates to:
+  /// **'Leftover Artisan'**
+  String get rankArtisan;
+
+  /// No description provided for @rankAlchemist.
+  ///
+  /// In en, this message translates to:
+  /// **'Pantry Alchemist'**
+  String get rankAlchemist;
+
+  /// No description provided for @rankSousChef.
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-Waste Sous Chef'**
+  String get rankSousChef;
+
+  /// No description provided for @rankExecutive.
+  ///
+  /// In en, this message translates to:
+  /// **'Executive Eco-Chef'**
+  String get rankExecutive;
 }
 
 class _AppLocalizationsDelegate

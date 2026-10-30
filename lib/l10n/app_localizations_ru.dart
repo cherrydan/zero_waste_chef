@@ -219,4 +219,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String premiumActiveUntil(String date) {
     return 'Премиум активен до: $date ⭐️';
   }
+
+  @override
+  String get rankRookie => 'Kitchen Rookie';
+
+  @override
+  String get rankArtisan => 'Leftover Artisan';
+
+  @override
+  String get rankAlchemist => 'Pantry Alchemist';
+
+  @override
+  String get rankSousChef => 'Zero-Waste Sous Chef';
+
+  @override
+  String get rankExecutive => 'Executive Eco-Chef';
 }

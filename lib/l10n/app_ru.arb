@@ -95,10 +95,12 @@
       "date": {
         "type": "String"
       }
-    }
+    },
+"rankRookie": "Кухонный новичок",
+"rankArtisan": "Мастер остатков",
+"rankAlchemist": "Алхимик кладовой",
+"rankSousChef": "Су-шеф Zero-Waste",
+"rankExecutive": "Эко-шеф высшего звена"
+
   }
-
-
-
-
 }

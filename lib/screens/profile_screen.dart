@@ -6,6 +6,18 @@ import '../l10n/app_localizations.dart'; // <-- 1. Наш импорт лока�
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  String _getRankTitle(BuildContext context, int level) {
+  final l10n = AppLocalizations.of(context)!;
+  switch (level) {
+    case 1: return l10n.rankRookie;
+    case 2: return l10n.rankArtisan;
+    case 3: return l10n.rankAlchemist;
+    case 4: return l10n.rankSousChef;
+    default: return l10n.rankExecutive;
+  }
+}
+
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
