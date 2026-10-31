@@ -501,6 +501,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Executive Eco-Chef'**
   String get rankExecutive;
+
+  /// No description provided for @xpRewardRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'+{xp} XP for creating a recipe! 👨‍🍳'**
+  String xpRewardRecipe(int xp);
 }
 
 class _AppLocalizationsDelegate

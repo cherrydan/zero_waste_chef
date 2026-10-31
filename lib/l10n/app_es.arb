@@ -100,6 +100,14 @@
 "rankArtisan": "Maestro del aprovechamiento",
 "rankAlchemist": "Alquimista de la despensa",
 "rankSousChef": "Sous-chef sin desperdicios",
-"rankExecutive": "Chef ejecutivo sostenible"
+"rankExecutive": "Chef ejecutivo sostenible",
+  "xpRewardRecipe": "¡+{xp} XP por crear una receta! 👨‍🍳",
+  "@xpRewardRecipe": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  }
 }
 

@@ -233,4 +233,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rankExecutive => 'Executive Eco-Chef';
+
+  @override
+  String xpRewardRecipe(int xp) {
+    return '+$xp XP for creating a recipe! 👨‍🍳';
+  }
 }

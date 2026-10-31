@@ -95,12 +95,20 @@
       "date": {
         "type": "String"
       }
+    }
     },
 "rankRookie": "Кухонный новичок",
 "rankArtisan": "Мастер остатков",
 "rankAlchemist": "Алхимик кладовой",
 "rankSousChef": "Су-шеф Zero-Waste",
-"rankExecutive": "Эко-шеф высшего звена"
-
+"rankExecutive": "Эко-шеф высшего звена",
+"xpRewardRecipe": "+{xp} XP за создание рецепта! 👨‍🍳",
+  "@xpRewardRecipe": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
   }
+
 }

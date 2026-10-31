@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zero_waste_chef/services/gamification_service.dart';
 import 'fridge_screen.dart'; // Чтобы видеть модель Ingredient
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -242,7 +243,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
           'Authorization': 'Bearer $myKey', // Убедись, что твой ключ на месте!
         },
         body: jsonEncode({
-          'model': 'gpt-3.5-turbo', // или gpt-4o-mini
+          'model': 'gpt-4o-mini',
+
           'messages': [
             {
               'role': 'user',
@@ -257,7 +259,8 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        final String reply = data['choices'][0]['message']['content'] as String;
+        String reply = data['choices'][0]['message']['content'] as String;
+        reply = reply.replaceAll('json', '').replaceAll('```', '').trim();
         
         final Map<String, dynamic> decodedRecipe = jsonDecode(reply);
 
@@ -271,6 +274,35 @@ class _RecipeScreenState extends State<RecipeScreen> {
           _shoppingChecks = List.generate(_recipe!.shoppingList.length, (index) => false);
           _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
         });
+
+                // 🟢 НАЧИСЛЕНИЕ XP ЧЕРЕЗ СИСТЕМУ ЛОКАЛИЗАЦИИ:
+        try {
+          const int reward = 25;
+          final gamification = GamificationService();
+          await gamification.recordRecipeGenerated(xpReward: reward);
+
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.military_tech, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    Text(l10n.xpRewardRecipe(reward)),
+                  ],
+                ),
+                backgroundColor: Colors.green.shade800,
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } catch (e) {
+          logger.w("Не удалось начислить XP: $e");
+        }
+
+
       } else {
         // Если сервер OpenAI вернул ошибку (например, статус 429 или 401)
         throw Exception('Ошибка сервера OpenAI: код ${response.statusCode}');

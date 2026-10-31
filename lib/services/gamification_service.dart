@@ -91,4 +91,21 @@ final prefs = await SharedPreferences.getInstance();
   await _save(updatedStats);
 }
 
+  /// Начисляет опыт за успешную генерацию рецепта
+  Future<void> recordRecipeGenerated({int xpReward = 25}) async {
+    // Убеждаемся, что перед начислением статистика загружена
+    if (_stats.lastActiveDate == null && _stats.xp == 0) {
+      await load();
+    }
+
+    final updated = _stats.copyWith(
+      xp: _stats.xp + xpReward,
+      recipesGenerated: _stats.recipesGenerated + 1,
+      lastActiveDate: DateTime.now(),
+    );
+
+    await _save(updated);
+  }
+
+
 }

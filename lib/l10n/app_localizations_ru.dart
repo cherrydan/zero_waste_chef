@@ -221,17 +221,22 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get rankRookie => 'Kitchen Rookie';
+  String get rankRookie => 'Кухонный новичок';
 
   @override
-  String get rankArtisan => 'Leftover Artisan';
+  String get rankArtisan => 'Мастер остатков';
 
   @override
-  String get rankAlchemist => 'Pantry Alchemist';
+  String get rankAlchemist => 'Алхимик кладовой';
 
   @override
-  String get rankSousChef => 'Zero-Waste Sous Chef';
+  String get rankSousChef => 'Су-шеф Zero-Waste';
 
   @override
-  String get rankExecutive => 'Executive Eco-Chef';
+  String get rankExecutive => 'Эко-шеф высшего звена';
+
+  @override
+  String xpRewardRecipe(int xp) {
+    return '+$xp XP за создание рецепта! 👨‍🍳';
+  }
 }

@@ -102,5 +102,13 @@
 "rankArtisan": "Leftover Artisan",
 "rankAlchemist": "Pantry Alchemist",
 "rankSousChef": "Zero-Waste Sous Chef",
-"rankExecutive": "Executive Eco-Chef"
+"rankExecutive": "Executive Eco-Chef",
+  "xpRewardRecipe": "+{xp} XP for creating a recipe! 👨‍🍳",
+  "@xpRewardRecipe": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  }
 }
