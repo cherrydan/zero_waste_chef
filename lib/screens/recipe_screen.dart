@@ -3,7 +3,6 @@ import 'package:zero_waste_chef/services/gamification_service.dart';
 import 'fridge_screen.dart'; // Чтобы видеть модель Ingredient
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -235,34 +234,41 @@ class _RecipeScreenState extends State<RecipeScreen> {
         widget.diet,           // 3. dietType (String)
       );
 
-      // 3. Отправляем запрос в OpenAI
+      // 3. Отправляем запрос через наш сервер.
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw Exception('SIGN_IN_REQUIRED');
+      }
+
+      final idToken = await user.getIdToken();
+
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('SIGN_IN_REQUIRED');
+      }
+
       final response = await http.post(
-        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        Uri.parse(
+          'https://zero-waste-chef-api.danilcerepuhin.workers.dev/generate',
+        ),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $myKey', // Убедись, что твой ключ на месте!
+          'Authorization': 'Bearer $idToken',
         },
         body: jsonEncode({
-          'model': 'gpt-4o-mini',
-
-          'messages': [
-            {
-              'role': 'user',
-              'content': aiPrompt,
-            }
-          ],
-          'temperature': 0.7,
+          'prompt': aiPrompt,
         }),
-      );
+      ).timeout(const Duration(seconds: 60));
 
       if (!mounted) return;
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-        String reply = data['choices'][0]['message']['content'] as String;
-        reply = reply.replaceAll('json', '').replaceAll('```', '').trim();
-        
-        final Map<String, dynamic> decodedRecipe = jsonDecode(reply);
+        final data = jsonDecode(
+        utf8.decode(response.bodyBytes),
+      ) as Map<String, dynamic>;
+
+      final decodedRecipe =
+          Map<String, dynamic>.from(data['recipe'] as Map);
 
         setState(() {
           _recipe = Recipe(
@@ -275,7 +281,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
           _stepsChecks = List.generate(_recipe!.steps.length, (index) => false);
         });
 
-                // 🟢 НАЧИСЛЕНИЕ XP ЧЕРЕЗ СИСТЕМУ ЛОКАЛИЗАЦИИ:
+        // 🟢 НАЧИСЛЕНИЕ XP ЧЕРЕЗ СИСТЕМУ ЛОКАЛИЗАЦИИ:
         try {
           const int reward = 25;
           final gamification = GamificationService();

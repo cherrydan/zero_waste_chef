@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zero_waste_chef/screens/profile_screen.dart';
 import 'dart:convert'; 
@@ -8,7 +9,6 @@ import 'favorites_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zero_waste_chef/utils/date_helpers.dart';    
 import '../l10n/app_localizations.dart';
-import 'paywall_screen.dart';
 import '../services/purchase_service.dart'; // 🟢 Для доступа к сервису покупок
    
    
@@ -90,8 +90,16 @@ class _FridgeScreenState extends State<FridgeScreen> {
 
   int _portions = 2; // Количество порций по умолчанию
 
-  int _dailyGenerationsCount = 0; // Текущее количество генераций сегодня
-  final int _maxDailyGenerations = 3; // Лимит бесплатных генераций в день
+  int _dailyGenerationsCount = 0;
+  int _maxDailyGenerations = 3;
+
+  bool _isQuotaLoading = true;
+  bool _quotaReady = false;
+  bool _groupAvailable = false;
+  bool _isOpeningRecipe = false;
+
+static const String _apiBase =
+    'https://zero-waste-chef-api.danilcerepuhin.workers.dev';
 
 
   // Заменили русские строки на универсальные ID:
@@ -155,39 +163,90 @@ class _FridgeScreenState extends State<FridgeScreen> {
   }
 
     // Загружаем и проверяем лимит генераций на сегодняшний день
-  Future<void> _loadDailyGenerationsLimit() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Получаем текущую дату на устройстве в формате ГГГГ-ММ-ДД
-    final now = DateTime.now();
-    final todayString = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    
-    // Читаем из памяти сохраненную дату последней генерации и счетчик
-    final lastGenDate = prefs.getString('last_generation_date') ?? '';
-    int count = prefs.getInt('generations_count_today') ?? 0;
-    
-    if (lastGenDate != todayString) {
-      // Если наступил новый день (или это первый запуск) — сбрасываем счетчик в 0
-      count = 0;
-      await prefs.setString('last_generation_date', todayString);
-      await prefs.setInt('generations_count_today', count);
+  Future<bool> _loadDailyGenerationsLimit() async {
+  if (!mounted) return false;
+
+  setState(() {
+    _isQuotaLoading = true;
+    _quotaReady = false;
+  });
+
+  try {
+    final user = auth.currentUser;
+
+    if (user == null) {
+      throw Exception('SIGN_IN_REQUIRED');
     }
-    
-    setState(() {
-      _dailyGenerationsCount = count;
-    });
-  }
 
-    Future<void> _incrementGenerationsCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    setState(() {
-      _dailyGenerationsCount++;
-    });
-    
-    await prefs.setInt('generations_count_today', _dailyGenerationsCount);
-  }
+    final token = await user.getIdToken();
 
+    if (token == null || token.isEmpty) {
+      throw Exception('SIGN_IN_REQUIRED');
+    }
+
+    final response = await http.get(
+      Uri.parse('$_apiBase/quota'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    ).timeout(const Duration(seconds: 20));
+
+    if (response.statusCode != 200) {
+      // Только код ответа — без токена и ключей.
+      throw Exception('QUOTA_HTTP_${response.statusCode}');
+    }
+
+    final data = jsonDecode(
+      utf8.decode(response.bodyBytes),
+    ) as Map<String, dynamic>;
+
+    final limit = data['limit'];
+    final remaining = data['remaining'];
+    final groupAvailable = data['group_available'];
+
+    if (limit is! int ||
+        remaining is! int ||
+        groupAvailable is! bool ||
+        limit < 0 ||
+        remaining < 0 ||
+        remaining > limit) {
+      throw Exception('INVALID_QUOTA_RESPONSE');
+    }
+
+    if (!mounted) return false;
+
+    if (auth.currentUser?.uid != user.uid) {
+      throw Exception('ACCOUNT_CHANGED');
+    }
+
+    setState(() {
+      _maxDailyGenerations = limit;
+      _dailyGenerationsCount = limit - remaining;
+      _groupAvailable = groupAvailable;
+      _quotaReady = true;
+    });
+
+    return true;
+  } catch (e) {
+    debugPrint('Quota loading failed: $e');
+
+    if (mounted) {
+      _showInfo(
+        AppLocalizations.of(context)!.aiErrorFallback,
+        Colors.orange,
+      );
+    }
+
+    return false;
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isQuotaLoading = false;
+      });
+    }
+  }
+}
+  
     Future<void> _checkPremiumStatus() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -203,12 +262,63 @@ class _FridgeScreenState extends State<FridgeScreen> {
     setState(() {
       _isUserPremium = isPremium;
       _premiumExpirationDate = expirationDate; // Сохраняем дату в стейт
-      if (_isUserPremium) {
-        _dailyGenerationsCount = 0; 
-      }
+    
     });
   }
 
+  Future<void> _openRecipe() async {
+  if (_isOpeningRecipe || _isQuotaLoading) return;
+
+  setState(() {
+    _isOpeningRecipe = true;
+  });
+
+  try {
+    // Проверяем свежий остаток перед каждой генерацией.
+    final loaded = await _loadDailyGenerationsLimit();
+
+    if (!mounted || !loaded) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    final remaining =
+        _maxDailyGenerations - _dailyGenerationsCount;
+
+    if (remaining <= 0) {
+  _showInfo(
+    l10n.freeGenerations(0, _maxDailyGenerations),
+    Colors.orange,
+  );
+  return;
+}
+
+    if (!_groupAvailable) {
+      _showInfo(l10n.aiErrorFallback, Colors.orange);
+      return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RecipeScreen(
+          selectedIngredients: List<Ingredient>.from(_ingredients),
+          portions: _portions,
+          diet: _getDietName(_selectedDiet),
+          savedRecipe: null,
+        ),
+      ),
+    );
+
+    // Обновляем остаток и после успеха, и после ошибки генерации.
+    if (!mounted) return;
+    await _loadDailyGenerationsLimit();
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isOpeningRecipe = false;
+      });
+    }
+  }
+}
 
 
 
@@ -682,18 +792,23 @@ class _FridgeScreenState extends State<FridgeScreen> {
           ),
           const SizedBox(height: 16),
           // 🟢 Локализованный индикатор
+        
         Text(
-        l10n.freeGenerations(_maxDailyGenerations - _dailyGenerationsCount, _maxDailyGenerations),
+  _quotaReady
+      ? l10n.freeGenerations(
+          _maxDailyGenerations - _dailyGenerationsCount,
+          _maxDailyGenerations,
+        )
+      : '—',
          textAlign: TextAlign.center,
           style: TextStyle(
-           fontSize: 14,
-             color: _dailyGenerationsCount >= _maxDailyGenerations 
-            ? Colors.red.shade700 
-            : Colors.grey.shade600,
-          fontWeight: _dailyGenerationsCount >= _maxDailyGenerations 
-        ? FontWeight.bold 
-        : FontWeight.normal,
-  ),
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          color: _quotaReady &&
+                  _dailyGenerationsCount >= _maxDailyGenerations
+              ? Colors.red.shade700
+              : Colors.green.shade900,
+        ),
 ),
 
           const SizedBox(height: 24), // Твой отступ от порций
@@ -719,69 +834,27 @@ class _FridgeScreenState extends State<FridgeScreen> {
           // 5. Кнопка "Сгенерировать"
       
           SizedBox(
-            width: double.infinity,
-            height: 50,
-           child: ElevatedButton(
-  style: ElevatedButton.styleFrom(
-    // 🟢 Меняем цвет кнопки динамически!
-    backgroundColor: _dailyGenerationsCount < _maxDailyGenerations 
-        ? Colors.green 
-        : Colors.amber.shade700, 
-    foregroundColor: Colors.white,
-  ),
-                onPressed: () async {
-                // Проверяем статус Premium. _isUserPremium уже обновляется через _checkPremiumStatus()
-                // при возвращении с Paywall или при старте экрана.
-                
-                if (_isUserPremium) {
-                  // 🟢 Сценарий 1: Пользователь Premium. ВСЕГДА генерируем, счетчик не трогаем!
-                  if (!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipeScreen(
-                        selectedIngredients: _ingredients,
-                        portions: _portions,
-                        diet: _getDietName(_selectedDiet),
-                        savedRecipe: null,
-                      ),
-                    ),
-                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
-                } else if (_dailyGenerationsCount < _maxDailyGenerations) {
-                  // 🟢 Сценарий 2: Пользователь НЕ Premium, НО у него ЕСТЬ бесплатные генерации
-                  await _incrementGenerationsCount(); // Списываем попытку
-                  
-                  if (!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecipeScreen(
-                        selectedIngredients: _ingredients,
-                        portions: _portions,
-                        diet: _getDietName(_selectedDiet),
-                        savedRecipe: null,
-                      ),
-                    ),
-                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
-                } else {
-                  // 🟢 Сценарий 3: Пользователь НЕ Premium, и лимит ИСЧЕРПАН
-                  // Ведем на экран оплаты (без списания!)
-                  if (!mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PaywallScreen()),
-                  ).then((_) => _checkPremiumStatus()); // Обновляем статус после возвращения
-                }
-              },
-
-  // 🟢 Меняем текст кнопки динамически!
-  child: Text(
-    _dailyGenerationsCount < _maxDailyGenerations
-        ? l10n.generateButton
-        : l10n.paywallTitle,
-  ),
-),
-  ),
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: (_isQuotaLoading || _isOpeningRecipe)
+                    ? null
+                    : _openRecipe,
+                child: (_isQuotaLoading || _isOpeningRecipe)
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(l10n.generateButton),
+              ),
+            ),
         ],
       ),
     );
