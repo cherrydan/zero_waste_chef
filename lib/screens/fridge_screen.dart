@@ -563,15 +563,21 @@ static const String _apiBase =
   }
 
   Widget _buildFridgeBody() {
-
     final l10n = AppLocalizations.of(context)!;
-   
 
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
+    // SafeArea keeps the action above Android's system navigation bar.
+    return SafeArea(
+      top: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final keyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+          final useScrollableFooter = keyboardOpen || constraints.maxHeight < 320;
+          final footer = _buildGenerationActions();
+          final content = ListView(
+            key: const PageStorageKey<String>('fridge-content'),
+            padding: const EdgeInsets.all(16),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            children: [
           // 1. Поле ввода и кнопка "+"
           Row(
             children: [
@@ -630,7 +636,7 @@ static const String _apiBase =
           ),
           const SizedBox(height: 16),
 
-          // 3. Блок "Тип диеты" (Horizontal Scroll)
+          // 3. Выбор диеты с переносом на следующую строку
           Align(
             alignment: Alignment.centerLeft,
             child: Text(
@@ -639,40 +645,35 @@ static const String _apiBase =
             ),
           ),
           const SizedBox(height: 8),
-                    SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                for (String dietId in _dietIds) // Проходим по ID диет
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8.0),
-                    child: ChoiceChip(
-                      // Переводим ID на лету для экрана:
-                      label: Text(_getDietName(dietId)), 
-                      selected: _selectedDiet == dietId, // Сравниваем ID
-                      selectedColor: Colors.green.shade200,
-                      backgroundColor: Colors.white,
-                      onSelected: (bool selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedDiet = dietId; // Сохраняем выбранный ID
-                          });
-                        }
-                      },
-                    ),
-                  ),
-              ],
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              for (final dietId in _dietIds)
+                ChoiceChip(
+                  label: Text(_getDietName(dietId)),
+                  selected: _selectedDiet == dietId,
+                  selectedColor: Colors.green.shade200,
+                  backgroundColor: Colors.white,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() => _selectedDiet = dietId);
+                    }
+                  },
+                ),
+            ],
           ),
 
           const SizedBox(height: 16),
 
           // 4. Список добавленных продуктов
-          Expanded(
-            child: _ingredients.isEmpty
+          _ingredients.isEmpty
                 ?  Center(child: Text(l10n.emptyFridge))
                 : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    primary: false,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: _ingredients.length,
                     itemBuilder: (context, index) {
                      final item = _ingredients[index];
@@ -750,7 +751,7 @@ static const String _apiBase =
 
                     },
                   ),
-          ),
+          const SizedBox(height: 16),
                   // Блок настройки порций
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -758,10 +759,14 @@ static const String _apiBase =
               color: Colors.green.shade50,
               borderRadius: BorderRadius.circular(12.0),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 12,
+              runSpacing: 4,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.restaurant, color: Colors.green),
                     SizedBox(width: 8),
@@ -772,6 +777,7 @@ static const String _apiBase =
                   ],
                 ),
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.remove_circle_outline, color: Colors.green),
@@ -791,8 +797,49 @@ static const String _apiBase =
             ),
           ),
           const SizedBox(height: 16),
-          // 🟢 Локализованный индикатор
-        
+          if (_isUserPremium && _premiumExpirationDate != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0), // Отступ от надписи до кнопки
+              child: Center(
+                child: Text(
+                  l10n.premiumActiveUntil(_premiumExpirationDate!),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.amber, // Золотой Premium акцент
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+
+
+              if (useScrollableFooter) footer,
+            ],
+          );
+
+          if (useScrollableFooter) return content;
+
+          return Column(
+            children: [
+              Expanded(child: content),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: footer,
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildGenerationActions() {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         Text(
   _quotaReady
       ? l10n.freeGenerations(
@@ -811,35 +858,17 @@ static const String _apiBase =
         ),
 ),
 
-          const SizedBox(height: 24), // Твой отступ от порций
-
-          // 🟢 ВОТ СЮДА ВСТАВЛЯЕМ НАШУ НАДПИСЬ:
-          if (_isUserPremium && _premiumExpirationDate != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12.0), // Отступ от надписи до кнопки
-              child: Center(
-                child: Text(
-                  l10n.premiumActiveUntil(_premiumExpirationDate!),
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.amber, // Золотой Premium акцент
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        const SizedBox(height: 12),
+          ConstrainedBox(
+              constraints: const BoxConstraints(
+                minWidth: double.infinity,
+                minHeight: 52,
               ),
-            ),
-
-
-
-          // 5. Кнопка "Сгенерировать"
-      
-          SizedBox(
-              width: double.infinity,
-              height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.green,
                   foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 onPressed: (_isQuotaLoading || _isOpeningRecipe)
                     ? null
@@ -852,14 +881,12 @@ static const String _apiBase =
                           strokeWidth: 2,
                         ),
                       )
-                    : Text(l10n.generateButton),
+                    : Text(l10n.generateButton, textAlign: TextAlign.center),
               ),
             ),
-        ],
-      ),
+      ],
     );
   }
-
 
    @override
   Widget build(BuildContext context) {
