@@ -311,7 +311,7 @@ class _RecipeScreenState extends State<RecipeScreen> {
 
       } else {
         // Если сервер OpenAI вернул ошибку (например, статус 429 или 401)
-        throw Exception('Ошибка сервера OpenAI: код ${response.statusCode}');
+        throw Exception('Ошибка API рецептов: код ${response.statusCode}');
       }
 
     } catch (e) {
