@@ -3,20 +3,16 @@
 const GLOBAL_DAILY_LIMIT = 30;
 const MAX_BODY_BYTES = 16000;
 const MAX_PROMPT_CHARS = 6000;
-
 const GOOGLE_KEYS_URL =
   'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com';
-
 let keyCache = { keys: [], expires: 0 };
 let keyFetch = null;
-
 class HttpError extends Error {
   constructor(status, code) {
-    super(code);
-    this.status = status;
+super(code);
+this.status = status;
   }
 }
-
 function json(value, status = 200) {
   return new Response(JSON.stringify(value), {
     status,
@@ -26,60 +22,48 @@ function json(value, status = 200) {
     },
   });
 }
-
 function decode64url(value) {
   if (!/^[A-Za-z0-9_-]+$/.test(value)) {
     throw new Error('Invalid base64url');
   }
-
   const base = value.replace(/-/g, '+').replace(/_/g, '/');
-
   return Uint8Array.from(
     atob(base + '='.repeat((4 - base.length % 4) % 4)),
     c => c.charCodeAt(0),
   );
 }
-
 function decodePart(value) {
   return JSON.parse(
     new TextDecoder('utf-8', { fatal: true, ignoreBOM: false })
       .decode(decode64url(value)),
   );
 }
-
 // Публичные ключи Google для проверки подписи токена Firebase.
 async function googleKeys() {
   if (keyCache.expires > Date.now()) {
     return keyCache.keys;
   }
-
   if (!keyFetch) {
     keyFetch = (async () => {
       try {
         const response = await fetch(GOOGLE_KEYS_URL, {
           signal: AbortSignal.timeout(10000),
         });
-
         if (!response.ok) {
           throw new Error('Key service unavailable');
         }
-
         const data = await response.json();
-
         if (!Array.isArray(data.keys) || !data.keys.length) {
           throw new Error('Missing keys');
         }
-
         const age = Number(
           (response.headers.get('cache-control') || '')
             .match(/max-age=(\d+)/)?.[1] || 300,
         );
-
         keyCache = {
           keys: data.keys,
           expires: Date.now() + Math.min(age, 86400) * 1000,
         };
-
         return keyCache.keys;
       } catch {
         throw new HttpError(503, 'AUTH_SERVICE_UNAVAILABLE');
@@ -88,41 +72,31 @@ async function googleKeys() {
       }
     })();
   }
-
   return keyFetch;
 }
-
 // Проверяем не просто UID, а подписанный Firebase ID token.
 async function verifyUser(request, projectId) {
   const authorization =
     request.headers.get('Authorization') || '';
-
   if (authorization.length > 12000) {
     throw new HttpError(401, 'INVALID_TOKEN');
   }
-
   const match = authorization.match(
     /^Bearer ([A-Za-z0-9_.-]+)$/i,
   );
-
   if (!match) {
     throw new HttpError(401, 'SIGN_IN_REQUIRED');
   }
-
   const parts = match[1].split('.');
   let header;
   let claims;
-
   try {
     if (parts.length !== 3) {
       throw new Error();
     }
-
     header = decodePart(parts[0]);
     claims = decodePart(parts[1]);
-
     const now = Math.floor(Date.now() / 1000);
-
     if (
       !header ||
       !claims ||
@@ -156,20 +130,16 @@ async function verifyUser(request, projectId) {
   } catch {
     throw new HttpError(401, 'INVALID_TOKEN');
   }
-
   const keys = await googleKeys();
-
   const jwk = keys.find(
     k =>
       k.kid === header.kid &&
       k.kty === 'RSA' &&
       k.alg === 'RS256',
   );
-
   if (!jwk) {
     throw new HttpError(401, 'INVALID_TOKEN');
   }
-
   try {
     const key = await crypto.subtle.importKey(
       'jwk',
@@ -181,68 +151,52 @@ async function verifyUser(request, projectId) {
       false,
       ['verify'],
     );
-
     const valid = await crypto.subtle.verify(
       'RSASSA-PKCS1-v1_5',
       key,
       decode64url(parts[2]),
       new TextEncoder().encode(`${parts[0]}.${parts[1]}`),
     );
-
     if (!valid) {
       throw new Error();
     }
   } catch {
     throw new HttpError(401, 'INVALID_TOKEN');
   }
-
   return claims.sub;
 }
-
 // Ограничиваем размер входящего запроса.
-async function readInput(request) {
+async function readInput(request, activation = false) {
   const type = (request.headers.get('content-type') || '')
     .split(';')[0]
     .trim()
     .toLowerCase();
-
   if (type !== 'application/json') {
     throw new HttpError(415, 'JSON_REQUIRED');
   }
-
   if (!request.body) {
     throw new HttpError(400, 'EMPTY_BODY');
   }
-
   const reader = request.body.getReader();
   const chunks = [];
   let size = 0;
-
   while (true) {
     const { done, value } = await reader.read();
-
     if (done) break;
-
     size += value.length;
-
     if (size > MAX_BODY_BYTES) {
       await reader.cancel();
       throw new HttpError(413, 'BODY_TOO_LARGE');
     }
-
     chunks.push(value);
   }
-
   const bytes = new Uint8Array(size);
   let offset = 0;
-
   for (const chunk of chunks) {
     bytes.set(chunk, offset);
     offset += chunk.length;
   }
-
   let data;
-
   try {
     data = JSON.parse(
       new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(bytes),
@@ -250,7 +204,16 @@ async function readInput(request) {
   } catch {
     throw new HttpError(400, 'INVALID_JSON');
   }
-
+  if (activation) {
+    if (!data || typeof data.code !== 'string' || data.code.length > 100) {
+      throw new HttpError(400, 'INVITE_INVALID');
+    }
+    const code = data.code.replace(/[\s-]/g, '').toUpperCase();
+    if (!/^[A-F0-9]{32}$/.test(code)) {
+      throw new HttpError(400, 'INVITE_INVALID');
+    }
+    return code;
+  }
   if (
     !data ||
     typeof data.prompt !== 'string' ||
@@ -259,10 +222,8 @@ async function readInput(request) {
   ) {
     throw new HttpError(400, 'INVALID_PROMPT');
   }
-
   return data.prompt.trim();
 }
-
 // Значение -1 намеренно нарушает CHECK (request_count >= 0).
 // При исчерпании лимита вся транзакция откатывается:
 // либо увеличатся оба счётчика, либо ни один.
@@ -280,7 +241,6 @@ const GLOBAL_SQL = `
       END
   RETURNING request_count
 `;
-
 const USER_SQL = `
   INSERT INTO daily_usage (
     uid,
@@ -318,31 +278,25 @@ const USER_SQL = `
       END
   RETURNING request_count
 `;
-
 async function reserveAttempt(db, uid, day) {
   try {
     const results = await db.batch([
       db.prepare(GLOBAL_SQL).bind(day, GLOBAL_DAILY_LIMIT),
       db.prepare(USER_SQL).bind(uid, day, uid, uid),
     ]);
-
     if (results.some(r => !r.success)) {
       throw new Error('Database batch failed');
     }
-
     return results[1].results[0].request_count;
   } catch (error) {
     const details =
       `${error.message || ''} ${error.cause?.message || ''}`;
-
     if (/CHECK constraint failed/i.test(details)) {
       throw new HttpError(429, 'DAILY_LIMIT_REACHED');
     }
-
     throw error;
   }
 }
-
 const RECIPE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
@@ -361,7 +315,6 @@ const RECIPE_SCHEMA = {
   },
   required: ['recipe_name', 'shopping_list', 'steps'],
 };
-
 function validRecipe(value) {
   return (
     value &&
@@ -374,7 +327,6 @@ function validRecipe(value) {
     value.steps.every(x => typeof x === 'string')
   );
 }
-
 // Ключ используется только здесь, на сервере.
 async function generateRecipe(prompt, apiKey) {
   try {
@@ -416,15 +368,12 @@ async function generateRecipe(prompt, apiKey) {
         }),
       },
     );
-
     if (!response.ok) {
       await response.body?.cancel();
       throw new HttpError(502, 'AI_REQUEST_FAILED');
     }
-
     const data = await response.json();
     const choice = data.choices?.[0];
-
     if (
       choice?.finish_reason !== 'stop' ||
       choice.message?.refusal ||
@@ -432,44 +381,80 @@ async function generateRecipe(prompt, apiKey) {
     ) {
       throw new HttpError(502, 'AI_RESPONSE_INVALID');
     }
-
     const recipe = JSON.parse(choice.message.content);
-
     if (!validRecipe(recipe)) {
       throw new HttpError(502, 'AI_RESPONSE_INVALID');
     }
-
     return recipe;
   } catch (error) {
     if (error instanceof HttpError) throw error;
     throw new HttpError(502, 'AI_UNAVAILABLE');
   }
 }
+// Activation uses the verified Firebase UID, never a UID supplied in JSON.
+async function activate(request, db, uid) {
+  const existing = await db.prepare(
+    'SELECT enabled FROM testers WHERE uid = ?',
+  ).bind(uid).first();
+  if (existing) {
+    if (existing.enabled !== 1) throw new HttpError(403, 'TESTER_DISABLED');
+    return json({ activated: true });
+  }
+
+  // At most 10 attempts per authenticated UID per 15-minute UTC window.
+  // One row per UID; repeated calls do not grow the table without bound.
+  const window = Math.floor(Date.now() / 900000);
+  const attempt = await db.prepare(`
+    INSERT INTO invite_attempts(uid, window_id, attempts) VALUES (?, ?, 1)
+    ON CONFLICT(uid) DO UPDATE SET
+      attempts = CASE WHEN window_id = excluded.window_id THEN attempts + 1 ELSE 1 END,
+      window_id = excluded.window_id
+    WHERE window_id <> excluded.window_id OR attempts < 10
+    RETURNING attempts
+  `).bind(uid, window).first();
+  if (!attempt) throw new HttpError(429, 'INVITE_RATE_LIMITED');
+
+  const code = await readInput(request, true);
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
+  const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    // The SQL triggers validate capacity and grant access in this same statement.
+    // A concurrent retry for an existing tester inserts nothing and spends nothing.
+    await db.prepare(`
+      INSERT INTO invite_redemptions(uid, code_hash)
+      SELECT ?, ? WHERE NOT EXISTS (SELECT 1 FROM testers WHERE uid = ?)
+    `).bind(uid, hash, uid).run();
+  } catch (error) {
+    const details = `${error.message || ''} ${error.cause?.message || ''}`;
+    if (details.includes('INVITE_UNAVAILABLE')) {
+      throw new HttpError(400, 'INVITE_UNAVAILABLE');
+    }
+    throw error;
+  }
+  const tester = await db.prepare('SELECT enabled FROM testers WHERE uid = ?').bind(uid).first();
+  if (!tester || tester.enabled !== 1) throw new HttpError(403, 'TESTER_DISABLED');
+  return json({ activated: true });
+}
 
 export default {
   async fetch(request, env) {
     try {
       const path = new URL(request.url).pathname;
-
-      // Проверка доступности сервера без обращения к OpenAI.
+// Проверка доступности сервера без обращения к OpenAI.
       if (request.method === 'GET' && path === '/') {
         return json({
           status: 'ok',
           service: 'ZeroWasteChef API',
         });
       }
-
-      if (path !== '/generate' && path !== '/quota') {
+      if (!['/generate', '/quota', '/activate'].includes(path)) {
         return json({ error: 'NOT_FOUND' }, 404);
       }
-
       const expectedMethod =
-        path === '/generate' ? 'POST' : 'GET';
-
+        path === '/quota' ? 'GET' : 'POST';
       if (request.method !== expectedMethod) {
         return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
       }
-
       if (
         !env.DB ||
         !env.FIREBASE_PROJECT_ID ||
@@ -477,34 +462,26 @@ export default {
       ) {
         throw new HttpError(503, 'SERVER_NOT_CONFIGURED');
       }
-
       const uid = await verifyUser(
         request,
         env.FIREBASE_PROJECT_ID,
       );
-
       const db = env.DB.withSession('first-primary');
-
+    if (path === '/activate') return await activate(request, db, uid);
       const tester = await db.prepare(
         'SELECT enabled, daily_limit FROM testers WHERE uid = ?',
       ).bind(uid).first();
-
-      if (!tester || tester.enabled !== 1) {
-        throw new HttpError(403, 'TESTER_ACCESS_REQUIRED');
-      }
-
-      // Получение оставшегося лимита.
+      if (!tester) throw new HttpError(403, 'TESTER_ACCESS_REQUIRED');
+      if (tester.enabled !== 1) throw new HttpError(403, 'TESTER_DISABLED');
+// Получение оставшегося лимита.
       if (path === '/quota') {
         const day = new Date().toISOString().slice(0, 10);
-
         const usage = await db.prepare(
           'SELECT request_count FROM daily_usage WHERE uid = ? AND usage_date = ?',
         ).bind(uid, day).first();
-
         const global = await db.prepare(
           'SELECT request_count FROM global_daily_usage WHERE usage_date = ?',
         ).bind(day).first();
-
         return json({
           date: day,
           timezone: 'UTC',
@@ -517,18 +494,14 @@ export default {
             (global?.request_count || 0) < GLOBAL_DAILY_LIMIT,
         });
       }
-
-      // Генерация рецепта.
+// Генерация рецепта.
       const prompt = await readInput(request);
       const day = new Date().toISOString().slice(0, 10);
-
       const used = await reserveAttempt(db, uid, day);
-
       const recipe = await generateRecipe(
         prompt,
         env.OPENAI_API_KEY,
       );
-
       return json({
         recipe,
         remaining: Math.max(0, tester.daily_limit - used),
@@ -539,10 +512,8 @@ export default {
       if (error instanceof HttpError) {
         return json({ error: error.message }, error.status);
       }
-
-      // Не выводим ключи, токены и содержимое запросов в журнал.
+// Не выводим ключи, токены и содержимое запросов в журнал.
       console.error('ZeroWasteChef: internal request failure');
-
       return json({ error: 'SERVER_ERROR' }, 500);
     }
   },
